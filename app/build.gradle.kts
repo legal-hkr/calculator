@@ -43,6 +43,12 @@ android {
         // Libraries' translations limited to the app's languages
         localeFilters += listOf("en", "pl")
     }
+    // The converter's unit search reads the names in both languages: an app bundle must keep both
+    bundle {
+        language {
+            enableSplit = false
+        }
+    }
     // F-Droid: no dependency metadata blob in the APK
     dependenciesInfo {
         includeInApk = false

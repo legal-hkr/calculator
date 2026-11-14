@@ -16,8 +16,8 @@ import sh.hnet.calculator.engine.number.Real
 
 private val Context.calculatorState by preferencesDataStore("calculator")
 
-/** The app's modes (SPEC §4.1); the Converter joins with stage 5. */
-enum class AppMode { CALCULATOR, PROGRAMMER }
+/** The app's modes (SPEC §4.1). */
+enum class AppMode { CALCULATOR, PROGRAMMER, CONVERTER }
 
 /**
  * The calculator's state between runs (SPEC §4.1): the expression with its cursor, whether a

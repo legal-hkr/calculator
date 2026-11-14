@@ -53,6 +53,7 @@ import sh.hnet.calculator.engine.format.NumberStyle
 import sh.hnet.calculator.ui.calculator.CalculatorContent
 import sh.hnet.calculator.ui.components.TooltipIconButton
 import sh.hnet.calculator.ui.programmer.ProgrammerContent
+import sh.hnet.calculator.ui.converter.ConverterContent
 
 /**
  * The app's root (SPEC §4): the top bar – the mode's name opening the mode menu, History, Settings –
@@ -76,9 +77,12 @@ fun MainScreen(onOpenSettings: () -> Unit, onOpenHistory: (HistoryMode) -> Unit,
         TopAppBar(
             title = { ModeButton(current) { scope.launch { store.saveMode(it) } } },
             actions = {
-                TooltipIconButton(R.drawable.ic_history, stringResource(R.string.tooltip_history), {
-                    onOpenHistory(if (current == AppMode.PROGRAMMER) HistoryMode.PROGRAMMER else HistoryMode.CALCULATOR)
-                })
+                // The Converter has no History: its results never go there (SPEC §7.2)
+                if (current != AppMode.CONVERTER) {
+                    TooltipIconButton(R.drawable.ic_history, stringResource(R.string.tooltip_history), {
+                        onOpenHistory(if (current == AppMode.PROGRAMMER) HistoryMode.PROGRAMMER else HistoryMode.CALCULATOR)
+                    })
+                }
                 TooltipIconButton(R.drawable.ic_settings, stringResource(R.string.tooltip_settings), onOpenSettings)
             },
         )
@@ -87,6 +91,7 @@ fun MainScreen(onOpenSettings: () -> Unit, onOpenHistory: (HistoryMode) -> Unit,
             when (m) {
                 AppMode.CALCULATOR -> CalculatorContent(style, settings.vibrate, snackbars, messageScope)
                 AppMode.PROGRAMMER -> ProgrammerContent(style, settings.vibrate)
+                AppMode.CONVERTER -> ConverterContent(style, settings.vibrate)
             }
         }
     }
@@ -96,12 +101,14 @@ private val AppMode.title: Int
     get() = when (this) {
         AppMode.CALCULATOR -> R.string.title_mode_calculator
         AppMode.PROGRAMMER -> R.string.title_mode_programmer
+        AppMode.CONVERTER -> R.string.title_mode_converter
     }
 
 private val AppMode.icon: Int
     @DrawableRes get() = when (this) {
         AppMode.CALCULATOR -> R.drawable.ic_calculate
         AppMode.PROGRAMMER -> R.drawable.ic_code
+        AppMode.CONVERTER -> R.drawable.ic_swap_horiz
     }
 
 /** The mode's name with a drop-down arrow; the menu lists the modes, the current one checked (SPEC §4.2). */
