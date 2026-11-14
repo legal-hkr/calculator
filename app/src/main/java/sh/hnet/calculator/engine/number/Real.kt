@@ -128,7 +128,13 @@ abstract class Real {
             return estimate
         }
 
-        /** A recipe from a function of the places asked for (p ≥ 0). */
+        /**
+         * A number known only to the digits of [value] (a stored inexact result, e.g. Ans after a
+         * restart): within one unit as long as no more places are asked for than [value] has.
+         */
+        fun approximation(value: BigDecimal): Real = computed { p -> value.setScale(p, java.math.RoundingMode.HALF_UP).unscaledValue() }
+
+        /** A recipe from a function of the places asked for. */
         fun computed(f: (Int) -> BigInteger): Real = object : Real() {
             override fun approximate(p: Int): BigInteger = f(p)
         }

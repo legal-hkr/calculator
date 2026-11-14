@@ -12,11 +12,34 @@
     <string name="msg_no_browser">Brak aplikacji, która otworzy ten link</string>
 
     <!-- Calculator -->
-    <string name="msg_in_development">W przygotowaniu.</string>
+    <string name="title_mode_calculator">Kalkulator</string>
+    <string name="tooltip_settings">Ustawienia</string>
+    <string name="content_description_delete">Usuń</string>
+    <string name="desc_delete_long_press">Przytrzymaj, aby wyczyścić wszystko</string>
+    <string name="content_description_clear">Wyczyść</string>
+    <string name="content_description_bracket">Nawias</string>
+    <string name="content_description_open_bracket">Nawias otwierający</string>
+    <string name="content_description_percent">Procent</string>
+    <string name="content_description_divide">Dzielenie</string>
+    <string name="content_description_multiply">Mnożenie</string>
+    <string name="content_description_minus">Minus</string>
+    <string name="content_description_plus">Plus</string>
+    <string name="content_description_equals">Równa się</string>
+    <string name="content_description_sign">Zmień znak</string>
+    <string name="content_description_decimal">Separator dziesiętny</string>
+    <string name="content_description_square_root">Pierwiastek kwadratowy</string>
+    <string name="content_description_square">Do kwadratu</string>
+    <string name="content_description_power">Potęga</string>
+    <string name="content_description_pi">Pi</string>
+    <string name="content_description_factorial">Silnia</string>
+    <string name="error_divide_by_zero">Nie można dzielić przez zero.</string>
+    <string name="error_domain">Poza dziedziną funkcji.</string>
+    <string name="error_overflow">Wynik jest za duży.</string>
+    <string name="error_malformed">Wyrażenie jest niepoprawne.</string>
+    <string name="error_incomplete">Wyrażenie jest niedokończone.</string>
 
     <!-- Settings -->
     <string name="title_settings">Ustawienia</string>
-    <string name="content_description_settings">Ustawienia</string>
     <string name="title_settings_group_app">Aplikacja</string>
     <string name="title_settings_group_data">Dane</string>
 
@@ -26,7 +49,7 @@
 
     <!-- Settings › Reset -->
     <string name="title_settings_reset">Resetowanie</string>
-    <string name="desc_settings_reset_row">Historia obliczeń zostaje</string>
+    <string name="desc_settings_reset_row">Historia obliczeń pozostaje bez zmian</string>
     <string name="desc_settings_reset">Wszystkie ustawienia wrócą do domyślnych, a język będzie zgodny z systemem. Historia obliczeń pozostanie bez zmian.</string>
     <string name="button_restore_defaults">Przywróć ustawienia domyślne</string>
     <string name="title_confirm_restore_defaults">Przywrócić ustawienia domyślne?</string>
@@ -50,5 +73,5 @@
     <string name="label_licenses">Licencje open source</string>
     <string name="desc_licenses">Składniki open source użyte w aplikacji</string>
     <string name="title_about_source">Kod źródłowy</string>
-    <string name="msg_about_privacy">Kalkulator nie ma dostępu do Internetu. Wszystko, co w nim policzysz, zostaje w telefonie. Bez konta, bez analityki, bez żadnych usług.</string>
+    <string name="msg_about_privacy">Aplikacja nie ma dostępu do Internetu. Wszystkie obliczenia pozostają w telefonie. Bez konta, bez analityki, bez innych usług.</string>
 </resources>
