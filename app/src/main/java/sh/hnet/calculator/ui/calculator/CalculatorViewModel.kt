@@ -14,6 +14,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runInterruptible
 import kotlinx.coroutines.withContext
 import sh.hnet.calculator.data.CalculatorStore
+import sh.hnet.calculator.CalculatorApplication
+import sh.hnet.calculator.data.HistoryEntry
+import sh.hnet.calculator.data.HistoryMode
+import sh.hnet.calculator.engine.expr.TokenCodec
 import sh.hnet.calculator.engine.expr.EvalContext
 import sh.hnet.calculator.engine.expr.Evaluation
 import sh.hnet.calculator.engine.expr.Expression
@@ -42,6 +46,7 @@ enum class DisplayError { DIVISION_BY_ZERO, DOMAIN, OVERFLOW, MALFORMED, INCOMPL
  */
 class CalculatorViewModel(application: Application) : AndroidViewModel(application) {
     private val store = CalculatorStore(application)
+    private val history = (application as CalculatorApplication).history
 
     var loaded by mutableStateOf(false)
         private set
@@ -162,6 +167,7 @@ class CalculatorViewModel(application: Application) : AndroidViewModel(applicati
                 is Evaluation.Value -> {
                     ans = evaluation.value
                     hasAns = true
+                    record(tokens, evaluation.value)
                     resultWidth = width
                     evaluated = tokens
                     result = formatted
@@ -189,6 +195,28 @@ class CalculatorViewModel(application: Application) : AndroidViewModel(applicati
         if (shown.exact || style.decimals != null || resultWidth >= Formatter.MAX_DIGITS + 20) return
         resultWidth = minOf(resultWidth + MORE_DIGITS, Formatter.MAX_DIGITS + 20)
         refresh()
+    }
+
+    /** Every successful "=" goes to History (SPEC §10.1); written off the main thread. */
+    private fun record(tokens: List<Token>, value: Real) {
+        val at = System.currentTimeMillis()
+        viewModelScope.launch(Dispatchers.Default) {
+            history.add(HistoryEntry(mode = HistoryMode.CALCULATOR.name, expression = TokenCodec.encode(tokens), result = TokenCodec.encodeReal(value), createdAt = at))
+        }
+    }
+
+    /** A history entry's result at the cursor, as a whole number (after "=": a new expression). */
+    fun insertValue(value: Real) = press(Key.Insert(Token.Value(value)))
+
+    /** A history entry's expression in place of the current one (History › Insert expression). */
+    fun replaceExpression(tokens: List<Token>) {
+        if (!loaded) return
+        equalsJob?.cancel()
+        error = null
+        evaluated = null
+        result = null
+        expression = Expression(tokens)
+        changed()
     }
 
     /** The last result as a whole number at the cursor (the Ans key). */

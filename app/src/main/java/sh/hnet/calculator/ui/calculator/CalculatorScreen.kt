@@ -57,12 +57,12 @@ import sh.hnet.calculator.engine.format.NumberStyle
 import sh.hnet.calculator.ui.components.TooltipIconButton
 
 /**
- * The Calculator mode (SPEC §5, §6): top bar with the mode's name and Settings (History joins with
- * stage 3, the mode menu with stage 4), the display, the scientific panel and the basic keypad. A
+ * The Calculator mode (SPEC §5, §6): top bar with the mode's name, History and Settings (the mode
+ * menu joins with stage 4), the display, the scientific panel and the basic keypad. A
  * physical keyboard types too (§5.5).
  */
 @Composable
-fun CalculatorScreen(onOpenSettings: () -> Unit, snackbars: SnackbarHostState, messageScope: CoroutineScope) {
+fun CalculatorScreen(onOpenSettings: () -> Unit, onOpenHistory: () -> Unit, snackbars: SnackbarHostState, messageScope: CoroutineScope) {
     val vm: CalculatorViewModel = viewModel()
     val app = LocalContext.current.applicationContext as CalculatorApplication
     val settings by app.preferences.calcSettings.collectAsState(CalcSettings())
@@ -105,7 +105,10 @@ fun CalculatorScreen(onOpenSettings: () -> Unit, snackbars: SnackbarHostState, m
     ) {
         TopAppBar(
             title = { Text(stringResource(R.string.title_mode_calculator), maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.semantics { heading() }) },
-            actions = { TooltipIconButton(R.drawable.ic_settings, stringResource(R.string.tooltip_settings), onOpenSettings) },
+            actions = {
+                TooltipIconButton(R.drawable.ic_history, stringResource(R.string.tooltip_history), onOpenHistory)
+                TooltipIconButton(R.drawable.ic_settings, stringResource(R.string.tooltip_settings), onOpenSettings)
+            },
         )
         Display(vm, style, displayClipboard, Modifier.weight(1f))
         Spacer(Modifier.height(8.dp))

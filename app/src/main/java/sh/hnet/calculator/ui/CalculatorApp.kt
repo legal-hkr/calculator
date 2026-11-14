@@ -6,6 +6,10 @@ import androidx.compose.animation.core.FiniteAnimationSpec
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
+import androidx.lifecycle.viewmodel.compose.viewModel
+import sh.hnet.calculator.data.HistoryMode
+import sh.hnet.calculator.ui.calculator.CalculatorViewModel
+import sh.hnet.calculator.ui.history.HistoryScreen
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Box
@@ -100,7 +104,25 @@ fun CalculatorApp() {
                         (slideOutHorizontally(spatial) { shift } + fadeOut(fastEffects))
                 },
                 entryProvider = entryProvider<NavKey> {
-                    entry<Screen.Calculator> { CalculatorScreen(onOpenSettings = { open(Screen.Settings) }, snackbars = snackbars, messageScope = scope) }
+                    entry<Screen.Calculator> {
+                        CalculatorScreen(
+                            onOpenSettings = { open(Screen.Settings) },
+                            onOpenHistory = { open(Screen.History(HistoryMode.CALCULATOR)) },
+                            snackbars = snackbars,
+                            messageScope = scope,
+                        )
+                    }
+                    entry<Screen.History> { key ->
+                        val calculator: CalculatorViewModel = viewModel()
+                        HistoryScreen(
+                            mode = key.mode,
+                            onBack = back,
+                            onInsertResult = calculator::insertValue,
+                            onInsertExpression = calculator::replaceExpression,
+                            snackbars = snackbars,
+                            messageScope = scope,
+                        )
+                    }
                     entry<Screen.Settings> {
                         SettingsRootScreen(
                             onBack = back,

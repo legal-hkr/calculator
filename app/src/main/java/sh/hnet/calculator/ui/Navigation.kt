@@ -2,11 +2,13 @@ package sh.hnet.calculator.ui
 
 import androidx.navigation3.runtime.NavKey
 import kotlinx.serialization.Serializable
+import sh.hnet.calculator.data.HistoryMode
 
 /** Pages of the one back stack: the calculator at its root and what opens over it. */
 @Serializable
 sealed interface Screen : NavKey {
     @Serializable data object Calculator : Screen
+    @Serializable data class History(val mode: HistoryMode) : Screen
     @Serializable data object Settings : Screen
     @Serializable data object SettingsLanguage : Screen
     @Serializable data object SettingsReset : Screen

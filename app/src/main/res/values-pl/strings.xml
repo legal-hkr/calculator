@@ -64,6 +64,21 @@
     <string name="label_switch_to_degrees">Przełącz na stopnie</string>
     <string name="error_paste">W schowku nie ma liczby ani wyrażenia.</string>
 
+    <!-- History -->
+    <string name="tooltip_history">Historia</string>
+    <string name="title_history">Historia</string>
+    <string name="tooltip_clear_history">Wyczyść historię</string>
+    <string name="menu_insert_expression">Wstaw wyrażenie</string>
+    <string name="menu_copy_result">Kopiuj wynik</string>
+    <string name="menu_copy_expression">Kopiuj wyrażenie</string>
+    <string name="menu_delete">Usuń</string>
+    <string name="msg_entry_deleted">Usunięto obliczenie</string>
+    <string name="msg_history_cleared">Wyczyszczono historię</string>
+    <string name="button_undo">Cofnij</string>
+    <string name="msg_history_empty">Nie ma jeszcze żadnych obliczeń</string>
+    <string name="label_today">Dzisiaj</string>
+    <string name="label_yesterday">Wczoraj</string>
+
     <!-- Settings -->
     <string name="title_settings">Ustawienia</string>
     <string name="title_settings_group_app">Aplikacja</string>
