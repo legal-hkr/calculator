@@ -1,5 +1,7 @@
 package sh.hnet.calculator.engine.expr
 
+import sh.hnet.calculator.engine.number.Real
+
 /** What a key does to the expression (SPEC §5.3, §5.4). */
 sealed interface Key {
     data class Insert(val token: Token) : Key
@@ -78,7 +80,7 @@ data class Expression(val tokens: List<Token> = emptyList(), val cursor: Int = t
         is Token.Operator -> operator(t.op)
         is Token.Postfix -> if (prev?.endsOperand == true) put(t) else this
         Token.Close -> if (unclosedBeforeCursor() > 0 && prev?.endsOperand == true) put(t) else this
-        is Token.Function, is Token.Constant, Token.Sqrt, Token.Open -> if (prev == Token.Exponent) this else put(t)
+        is Token.Function, is Token.Constant, is Token.Value, Token.Sqrt, Token.Not, Token.Open -> if (prev == Token.Exponent) this else put(t)
     }
 
     // Number literals
@@ -132,7 +134,7 @@ data class Expression(val tokens: List<Token> = emptyList(), val cursor: Int = t
         return when {
             p == Token.Exponent -> if (op == Op.MINUS || op == Op.PLUS) put(Token.Operator(op)) else this
             // At the start or after an opening: only a sign
-            p == null || p.opens || p == Token.Sqrt -> if (op == Op.MINUS) put(Token.Operator(op)) else this
+            p == null || p.opens || p == Token.Sqrt || p == Token.Not -> if (op == Op.MINUS) put(Token.Operator(op)) else this
             p is Token.Operator -> {
                 if (op == Op.MINUS && p.op in AFTER_WHICH_MINUS_IS_A_SIGN) return put(Token.Operator(op))
                 // An exponent's sign is part of a number, not an operator to replace
@@ -161,7 +163,7 @@ data class Expression(val tokens: List<Token> = emptyList(), val cursor: Int = t
         k = when {
             t == Token.Close -> matchingOpen(k - 1) ?: return null
             isLiteralPart(k - 1) -> literalAround(k).first
-            t is Token.Constant -> k - 1
+            t is Token.Constant || t is Token.Value -> k - 1
             else -> return null
         }
         while (k > 0 && tokens[k - 1] == Token.Sqrt) k--
@@ -229,18 +231,21 @@ data class Expression(val tokens: List<Token> = emptyList(), val cursor: Int = t
     }
 
     companion object {
-        private val AFTER_WHICH_MINUS_IS_A_SIGN = setOf(Op.TIMES, Op.DIVIDE, Op.POWER, Op.ROOT, Op.MOD)
+        private val AFTER_WHICH_MINUS_IS_A_SIGN = setOf(
+            Op.TIMES, Op.DIVIDE, Op.POWER, Op.ROOT, Op.MOD,
+            Op.AND, Op.OR, Op.XOR, Op.NAND, Op.NOR, Op.SHL, Op.SHR, Op.ROL, Op.ROR,
+        )
         private val BINDS_LIKE_DIVIDE_OR_TIGHTER = setOf(Op.DIVIDE, Op.MOD, Op.POWER, Op.ROOT)
 
         private val CONTINUING = setOf(Key.ToggleSign, Key.Reciprocal)
 
         /**
          * A key pressed while a result is shown (SPEC §6.5): an operator, a postfix, ± or 1/x go on
-         * from the result as Ans; anything else starts a new expression.
+         * from the result ([ans], as a whole number); anything else starts a new expression.
          */
-        fun afterResult(key: Key): Expression {
+        fun afterResult(key: Key, ans: Real): Expression {
             val continues = key in CONTINUING || (key is Key.Insert && (key.token is Token.Operator || key.token is Token.Postfix))
-            val start = if (continues) Expression(listOf(Token.Constant(Const.ANS))) else Expression()
+            val start = if (continues) Expression(listOf(Token.Value(ans))) else Expression()
             return start.apply(key)
         }
 

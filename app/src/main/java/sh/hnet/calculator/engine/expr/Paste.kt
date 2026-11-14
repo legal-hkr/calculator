@@ -1,10 +1,12 @@
 package sh.hnet.calculator.engine.expr
 
+import sh.hnet.calculator.engine.number.Real
+
 /**
  * Text from the clipboard as expression elements (SILNIK §2.3, SPEC §6.2), or null when it can't
  * be read: nothing is inserted then. Accepts the calculator's own symbols and the usual ASCII ones
  * (`*` `/` `:` `-` `^` `sqrt` `pi`), function names with a parenthesis, `2e5` as an exponent, a
- * trailing `=`. Whitespace is ignored; text over several lines is not read.
+ * trailing `=`, `Ans` as [ans] (unreadable without one). Whitespace is ignored; text over several lines is not read.
  *
  * Decimal separators: [decimalComma] (Polish) reads both `,` and `.` as decimal and spaces as
  * grouping; English reads `.` as decimal and `,` as grouping, unless a single comma is not followed
@@ -22,7 +24,7 @@ object Paste {
 
     private const val GROUPING_SPACES = "     \t"
 
-    fun read(text: String, decimalComma: Boolean): List<Token>? {
+    fun read(text: String, decimalComma: Boolean, ans: Real? = null): List<Token>? {
         val trimmed = text.trim()
         if (trimmed.isEmpty() || trimmed.contains('\n') || trimmed.contains('\r')) return null
         val s = trimmed.removeSuffix("=").filterNot { it in GROUPING_SPACES }
@@ -54,7 +56,7 @@ object Paste {
                     i += 3
                 }
                 lower.startsWith("ans") -> {
-                    out += Token.Constant(Const.ANS)
+                    out += Token.Value(ans ?: return null)
                     i += 3
                 }
                 lower.startsWith("pi") -> {

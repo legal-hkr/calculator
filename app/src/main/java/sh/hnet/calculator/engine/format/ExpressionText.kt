@@ -5,6 +5,7 @@ import sh.hnet.calculator.engine.expr.Fn
 import sh.hnet.calculator.engine.expr.Op
 import sh.hnet.calculator.engine.expr.PostOp
 import sh.hnet.calculator.engine.expr.Token
+import sh.hnet.calculator.engine.number.Real
 
 /**
  * An expression as text for the display (SPEC §6.2): binary operators with spaces around (`5 × 3`),
@@ -12,6 +13,9 @@ import sh.hnet.calculator.engine.expr.Token
  * grouped by the style. [offsets] maps the cursor: offsets[k] is where element k starts in [text],
  * offsets[size] is the end.
  */
+/** Digits grouped by [size] with [separator]. */
+data class DigitGroups(val size: Int, val separator: Char)
+
 class ExpressionText(val text: String, val offsets: IntArray) {
 
     /** The cursor position (between elements) nearest to a place in the text, for a tap. */
@@ -24,7 +28,17 @@ class ExpressionText(val text: String, val offsets: IntArray) {
     }
 
     companion object {
-        fun render(tokens: List<Token>, style: NumberStyle, ans: String = "Ans"): ExpressionText {
+        /** [value]: how a whole number (Ans) is written; by default as a result in [VALUE_WIDTH] characters. */
+        /** [groups]: the Programmer's grouping of its base (HEX by 4, OCT by 3), in place of the style's. */
+        fun render(
+            tokens: List<Token>,
+            style: NumberStyle,
+            value: (Real) -> String = { valueText(it, style) },
+            groups: DigitGroups? = null,
+        ): ExpressionText {
+            val groupSize = groups?.size ?: 3
+            val groupSeparator = groups?.separator ?: style.groupSeparator
+            val grouping = groups != null || style.grouping
             val sb = StringBuilder()
             val offsets = IntArray(tokens.size + 1)
             var k = 0
@@ -46,8 +60,8 @@ class ExpressionText(val text: String, val offsets: IntArray) {
                             sb.append(digitChar(tj.value))
                             // A separator after this digit when a group of three follows before the point
                             val remaining = point - j - 1
-                            if (style.grouping && !inExponent && j < point && remaining > 0 && remaining % 3 == 0 && intCount > 3) {
-                                sb.append(style.groupSeparator)
+                            if (grouping && !inExponent && j < point && remaining > 0 && remaining % groupSize == 0 && intCount > groupSize) {
+                                sb.append(groupSeparator)
                             }
                         } else {
                             sb.append(style.decimalSeparator)
@@ -57,7 +71,7 @@ class ExpressionText(val text: String, val offsets: IntArray) {
                     continue
                 }
                 offsets[k] = sb.length
-                sb.append(text(t, tokens.getOrNull(k - 1), ans))
+                sb.append(if (t is Token.Value) value(t.value) else text(t, tokens.getOrNull(k - 1)))
                 k++
             }
             offsets[tokens.size] = sb.length
@@ -68,9 +82,21 @@ class ExpressionText(val text: String, val offsets: IntArray) {
 
         /** A minus that is a sign: at the start, after an opening, an operator, √ or an exponent. */
         private fun isSign(prev: Token?): Boolean =
-            prev == null || prev == Token.Open || prev is Token.Function || prev is Token.Operator || prev == Token.Sqrt || prev == Token.Exponent
+            prev == null || prev == Token.Open || prev is Token.Function || prev is Token.Operator || prev == Token.Sqrt || prev == Token.Not || prev == Token.Exponent
 
-        private fun text(t: Token, prev: Token?, ans: String): String = when (t) {
+        /** Characters for a whole number in an expression: room for a usual result, not the whole line. */
+        const val VALUE_WIDTH = 14
+
+        /** A whole number as the result line would write it: `15 548,4…`, `1,23… × 10¹⁵`. */
+        fun valueText(v: Real, style: NumberStyle): String {
+            val f = Formatter.format(v, style.copy(decimals = null), VALUE_WIDTH)
+            val sb = StringBuilder(f.text)
+            if (!f.exact) sb.append('…')
+            f.exponent?.let { sb.append(" × 10").append(Formatter.superscript(it)) }
+            return sb.toString()
+        }
+
+        private fun text(t: Token, prev: Token?): String = when (t) {
             is Token.Digit -> digitChar(t.value).toString()
             Token.Point -> "."
             Token.Exponent -> "E"
@@ -82,6 +108,15 @@ class ExpressionText(val text: String, val offsets: IntArray) {
                 Op.POWER -> "^"
                 Op.ROOT -> "ʸ√"
                 Op.MOD -> " mod "
+                Op.AND -> " AND "
+                Op.OR -> " OR "
+                Op.XOR -> " XOR "
+                Op.NAND -> " NAND "
+                Op.NOR -> " NOR "
+                Op.SHL -> " << "
+                Op.SHR -> " >> "
+                Op.ROL -> " RoL "
+                Op.ROR -> " RoR "
             }
             Token.Open -> "("
             Token.Close -> ")"
@@ -99,7 +134,6 @@ class ExpressionText(val text: String, val offsets: IntArray) {
             is Token.Constant -> when (t.c) {
                 Const.PI -> "π"
                 Const.E -> "e"
-                Const.ANS -> ans
             }
             is Token.Postfix -> when (t.op) {
                 PostOp.FACTORIAL -> "!"
@@ -107,6 +141,8 @@ class ExpressionText(val text: String, val offsets: IntArray) {
                 PostOp.SQUARE -> "²"
             }
             Token.Sqrt -> "√"
+            Token.Not -> "NOT "
+            is Token.Value -> error("written by render")
         }
     }
 }

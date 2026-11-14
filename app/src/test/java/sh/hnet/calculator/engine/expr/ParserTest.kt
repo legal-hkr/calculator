@@ -19,7 +19,7 @@ class ParserTest {
     }
 
     private fun eval(text: String, angle: AngleUnit = AngleUnit.DEGREES, ans: Real? = null): Evaluation =
-        Parser.evaluate(tokens(text), EvalContext(angle, ans))
+        Parser.evaluate(Paste.read(text, false, ans)!!, EvalContext(angle))
 
     private fun exact(expected: String, text: String, angle: AngleUnit = AngleUnit.DEGREES) {
         val e = eval(text, angle)
@@ -124,6 +124,18 @@ class ParserTest {
     @Test fun ans() {
         val e = eval("Ans*2", ans = Real.of(21))
         assertEquals(Rational.of(42), (e as Evaluation.Value).value.rational)
+        // Without a last result there is no Ans to paste
+        assertNull(Paste.read("Ans*2", false))
+    }
+
+    @Test fun aWholeValueIsExact() {
+        // 1 ÷ 3 = 0.333…, then × 3: exactly 1, not 0.999…
+        val third = (eval("1/3") as Evaluation.Value).value
+        val e = Parser.evaluate(Expression.afterResult(Key.Insert(Token.Operator(Op.TIMES)), third).apply(Key.Insert(Token.Digit(3))).tokens)
+        assertEquals(Rational.ONE, (e as Evaluation.Value).value.rational)
+        // A value frozen in a reused expression keeps its result
+        val reused = listOf(Token.Value(Real.of(21)), Token.Operator(Op.PLUS), Token.Digit(1))
+        assertEquals(Rational.of(22), (Parser.evaluate(reused) as Evaluation.Value).value.rational)
     }
 
     @Test fun angleUnits() {

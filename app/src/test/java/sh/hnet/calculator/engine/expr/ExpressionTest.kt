@@ -2,6 +2,7 @@ package sh.hnet.calculator.engine.expr
 
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import sh.hnet.calculator.engine.number.Real
 
 class ExpressionTest {
     private fun render(e: Expression): String {
@@ -16,13 +17,16 @@ class ExpressionTest {
                     is Token.Operator -> when (t.op) {
                         Op.PLUS -> "+"; Op.MINUS -> "−"; Op.TIMES -> "×"; Op.DIVIDE -> "÷"
                         Op.POWER -> "^"; Op.ROOT -> "ʸ√"; Op.MOD -> " mod "
+                        else -> " ${t.op} "
                     }
                     Token.Open -> "("
                     Token.Close -> ")"
                     is Token.Function -> t.fn.name.lowercase() + "("
-                    is Token.Constant -> when (t.c) { Const.PI -> "π"; Const.E -> "e"; Const.ANS -> "Ans" }
+                    is Token.Constant -> when (t.c) { Const.PI -> "π"; Const.E -> "e" }
+                    is Token.Value -> "[${t.value}]"
                     is Token.Postfix -> when (t.op) { PostOp.FACTORIAL -> "!"; PostOp.PERCENT -> "%"; PostOp.SQUARE -> "²" }
                     Token.Sqrt -> "√"
+                    Token.Not -> "NOT "
                 },
             )
         }
@@ -138,11 +142,20 @@ class ExpressionTest {
     }
 
     @Test fun afterResult() {
-        assertEquals("Ans×|", render(Expression.afterResult(key('*'))))
-        assertEquals("7|", render(Expression.afterResult(key('7'))))
-        assertEquals("Ans!|", render(Expression.afterResult(key('!'))))
-        assertEquals("(|", render(Expression.afterResult(key('('))))
-        assertEquals("1÷(Ans)|", render(Expression.afterResult(Key.Reciprocal)))
+        val ans = Real.of(21)
+        assertEquals("[21]×|", render(Expression.afterResult(key('*'), ans)))
+        assertEquals("7|", render(Expression.afterResult(key('7'), ans)))
+        assertEquals("[21]!|", render(Expression.afterResult(key('!'), ans)))
+        assertEquals("(|", render(Expression.afterResult(key('('), ans)))
+        assertEquals("1÷([21])|", render(Expression.afterResult(Key.Reciprocal, ans)))
+        assertEquals("−[21]|", render(Expression.afterResult(Key.ToggleSign, ans)))
+    }
+
+    @Test fun aWholeValueGoesWithOneBackspace() {
+        val e = Expression.afterResult(key('*'), Real.of(21)).apply(key('2'))
+        assertEquals("[21]×2|", render(e))
+        assertEquals("|", render(e.apply(Key.Backspace).apply(Key.Backspace).apply(Key.Backspace)))
+        assertEquals("[21]|", render(e.apply(Key.Backspace).apply(Key.Backspace)))
     }
 
     @Test fun ghostBrackets() {

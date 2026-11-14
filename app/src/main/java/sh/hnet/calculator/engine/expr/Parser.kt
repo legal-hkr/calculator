@@ -20,7 +20,7 @@ sealed interface Evaluation {
 }
 
 /** What an evaluation needs besides the expression. */
-data class EvalContext(val angle: AngleUnit = AngleUnit.DEGREES, val ans: Real? = null)
+data class EvalContext(val angle: AngleUnit = AngleUnit.DEGREES)
 
 /**
  * Reads an expression and evaluates it (SILNIK §2.1). A Pratt parser; from the tightest binding:
@@ -88,7 +88,6 @@ object Parser {
         override fun value(c: EvalContext) = when (k) {
             Const.PI -> Calc.pi
             Const.E -> Calc.e
-            Const.ANS -> c.ans ?: Real.ZERO
         }
     }
 
@@ -145,6 +144,7 @@ object Parser {
                 Op.POWER -> Calc.power(x, y)
                 Op.ROOT -> Calc.root(x, y)
                 Op.MOD -> Calc.mod(x, y)
+                else -> throw CalcException(CalcError.SYNTAX)
             }
         }
     }
@@ -156,14 +156,16 @@ object Parser {
     private const val UNARY = 40
     private const val POW = 50
 
-    private fun leftPower(op: Op): Int = when (op) {
+    /** null: not an operator of the decimal calculator. */
+    private fun leftPower(op: Op): Int? = when (op) {
         Op.PLUS, Op.MINUS -> ADD
         Op.TIMES, Op.DIVIDE, Op.MOD -> MUL
         Op.POWER, Op.ROOT -> POW
+        else -> null
     }
 
     /** Right-associative powers read their right side at their own level; the rest one above. */
-    private fun rightPower(op: Op): Int = if (op == Op.POWER || op == Op.ROOT) POW else leftPower(op) + 1
+    private fun rightPower(op: Op): Int = if (op == Op.POWER || op == Op.ROOT) POW else leftPower(op)!! + 1
 
     private class Reader(val tokens: List<Token>) {
         var i = 0
@@ -186,7 +188,8 @@ object Parser {
                         Post(t.op, left)
                     }
                     t is Token.Operator -> {
-                        if (leftPower(t.op) < minPower) break
+                        val power = leftPower(t.op) ?: throw SyntaxSignal(i)
+                        if (power < minPower) break
                         i++
                         Binary(t.op, left, expression(rightPower(t.op)))
                     }
@@ -208,6 +211,10 @@ object Parser {
                 is Token.Constant -> {
                     i++
                     Constant(t.c)
+                }
+                is Token.Value -> {
+                    i++
+                    Num(t.value)
                 }
                 Token.Open -> {
                     i++
@@ -234,7 +241,7 @@ object Parser {
                 }
                 // An empty group, `()` or `sin()`, is still to be filled in
                 Token.Close -> throw IncompleteSignal()
-                Token.Exponent, is Token.Postfix -> throw SyntaxSignal(i)
+                Token.Exponent, is Token.Postfix, Token.Not -> throw SyntaxSignal(i)
             }
         }
 

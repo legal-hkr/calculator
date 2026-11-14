@@ -116,5 +116,10 @@ class FormatterTest {
         assertEquals(5, t.offsets[4])
         assertEquals(9, t.offsets[6])
         assertEquals(4, t.cursorAt(5))
+        val third = Real.of(Rational.of(1, 3))
+        val ans = ExpressionText.render(listOf(sh.hnet.calculator.engine.expr.Token.Value(third), sh.hnet.calculator.engine.expr.Token.Operator(sh.hnet.calculator.engine.expr.Op.TIMES)), pl).text
+        assertEquals("0,333333333333… × ", ans)
+        val big = ExpressionText.render(listOf(sh.hnet.calculator.engine.expr.Token.Value(Calc.multiply(Calc.pi, Calc.power(q("10"), q("15"))))), en).text
+        assertEquals("3.141592… × 10¹⁵", big)
     }
 }
