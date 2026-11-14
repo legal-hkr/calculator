@@ -71,6 +71,11 @@ class CalculatorStore(private val context: Context) {
         )
     }
 
+    /** From a backup or Reset: the angle unit alone. */
+    suspend fun saveAngle(a: AngleUnit) {
+        context.calculatorState.edit { it[angle] = a.name }
+    }
+
     suspend fun save(state: State) {
         // Encoded before the edit: an inexact Ans is written out to its digits once, off the main thread
         val encodedTokens = TokenCodec.encode(state.expression.tokens)

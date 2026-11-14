@@ -172,6 +172,13 @@ class ProgrammerViewModel(application: Application) : AndroidViewModel(applicati
         save()
     }
 
+    /** From Reset or a restored backup: the word replaced, the shown value cut to it. */
+    fun applyWord(w: Word) {
+        if (!loaded || w == word) return
+        word = w
+        rewrap()
+    }
+
     private fun rewrap() {
         result?.let {
             val w = word.wrap(it)

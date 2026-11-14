@@ -7,6 +7,7 @@ import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import sh.hnet.calculator.engine.format.Notation
 
@@ -35,6 +36,22 @@ class Preferences(private val context: Context) {
             grouping = p[grouping] ?: true,
             vibrate = p[vibrate] ?: true,
         )
+    }
+
+    suspend fun setDecimals(value: Int?) = context.settings.edit { if (value == null) it.remove(decimals) else it[decimals] = value }
+    suspend fun setNotation(value: Notation) = context.settings.edit { it[notation] = value.name }
+    suspend fun setGrouping(value: Boolean) = context.settings.edit { it[grouping] = value }
+    suspend fun setVibrate(value: Boolean) = context.settings.edit { it[vibrate] = value }
+
+    /** For a backup. */
+    suspend fun current(): CalcSettings = calcSettings.first()
+
+    /** From a backup: every setting replaced. */
+    suspend fun replace(s: CalcSettings) = context.settings.edit { p ->
+        if (s.decimals == null) p.remove(decimals) else p[decimals] = s.decimals
+        p[notation] = s.notation.name
+        p[grouping] = s.grouping
+        p[vibrate] = s.vibrate
     }
 
     /** Restore defaults (Settings › Reset): every setting of this store back to its default. */

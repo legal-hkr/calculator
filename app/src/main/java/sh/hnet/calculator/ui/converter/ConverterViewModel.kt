@@ -110,6 +110,18 @@ class ConverterViewModel(application: Application) : AndroidViewModel(applicatio
         memories = memories + (category to ConverterStore.Memory(from.id, to.id, expression.tokens, typedInFrom))
     }
 
+    /** From Reset (no pairs) or a restored backup: every category's pair, the rest at its default; the values stay. */
+    fun applyPairs(pairs: Map<Category, Pair<String, String>>) {
+        if (!loaded) return
+        remember()
+        memories = memories.mapValues { (c, m) ->
+            val (f, t) = pairs[c] ?: Units.defaultPairs.getValue(c)
+            m.copy(from = f, to = t)
+        }
+        show(category)
+        changed()
+    }
+
     fun selectCategory(c: Category) {
         if (!loaded || c == category) return
         remember()

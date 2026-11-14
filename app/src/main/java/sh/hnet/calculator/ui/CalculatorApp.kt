@@ -43,6 +43,8 @@ import androidx.navigation3.ui.NavDisplay
 import sh.hnet.calculator.R
 import sh.hnet.calculator.about.WhatsNew
 import sh.hnet.calculator.ui.settings.AboutScreen
+import sh.hnet.calculator.ui.settings.BackupScreen
+import sh.hnet.calculator.ui.settings.HistorySettingsScreen
 import sh.hnet.calculator.ui.settings.AppLicenseScreen
 import sh.hnet.calculator.ui.settings.LanguageScreen
 import sh.hnet.calculator.ui.settings.LicensesScreen
@@ -129,12 +131,16 @@ fun CalculatorApp() {
                         SettingsRootScreen(
                             onBack = back,
                             onOpenLanguage = { open(Screen.SettingsLanguage) },
+                            onOpenBackup = { open(Screen.SettingsBackup) },
+                            onOpenHistory = { open(Screen.SettingsHistory) },
                             onOpenReset = { open(Screen.SettingsReset) },
                             onOpenAbout = { open(Screen.SettingsAbout) },
                         )
                     }
                     entry<Screen.SettingsLanguage> { LanguageScreen(onBack = back) }
                     entry<Screen.SettingsReset> { ResetScreen(onBack = back) }
+                    entry<Screen.SettingsBackup> { BackupScreen(onBack = back, snackbars = snackbars, messageScope = scope) }
+                    entry<Screen.SettingsHistory> { HistorySettingsScreen(onBack = back, snackbars = snackbars, messageScope = scope) }
                     entry<Screen.SettingsAbout> {
                         AboutScreen(
                             onBack = back,

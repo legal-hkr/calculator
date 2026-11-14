@@ -60,6 +60,16 @@ class ConverterStore(private val context: Context) {
         }
     }
 
+    /** From a backup: the pairs given, the rest of the categories back to their defaults; the values stay. */
+    suspend fun savePairs(pairs: Map<Category, Pair<String, String>>) {
+        context.converterState.edit { p ->
+            Category.entries.forEach { c ->
+                val pairOf = pairs[c]
+                if (pairOf != null) p[pair(c)] = "${pairOf.first},${pairOf.second}" else p.remove(pair(c))
+            }
+        }
+    }
+
     /** Settings › Reset: every category back to its default pair; the values stay. */
     suspend fun restoreDefaultPairs() {
         context.converterState.edit { p -> Category.entries.forEach { p.remove(pair(it)) } }

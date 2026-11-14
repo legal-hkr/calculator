@@ -247,6 +247,44 @@
     <string name="label_today">Today</string>
     <string name="label_yesterday">Yesterday</string>
 
+    <!-- Settings: calculation, keypad, history, backup -->
+    <string name="title_group_calculation">Calculation</string>
+    <string name="label_decimal_places">Decimal places</string>
+    <string name="label_automatic">Automatic</string>
+    <string name="label_scientific_notation">Scientific notation</string>
+    <string name="label_always">Always</string>
+    <string name="label_never">Never</string>
+    <string name="desc_notation_automatic">When the number doesn’t fit</string>
+    <string name="desc_notation_always">Every result as 1.23 × 10¹⁵</string>
+    <string name="desc_notation_never">All digits. Long numbers scroll sideways.</string>
+    <string name="label_thousands_separator">Thousands separator</string>
+    <string name="title_group_keypad">Keypad</string>
+    <string name="label_vibrate_on_key">Vibrate on key press</string>
+    <string name="title_settings_history">History</string>
+    <string name="desc_settings_history_row">The last 1,000 calculations in each mode</string>
+    <string name="desc_history_limit">History keeps the last 1,000 calculations in each mode. Clearing it removes both lists, Calculator and Programmer.</string>
+    <string name="button_clear_history">Clear history</string>
+    <string name="title_backup">Backup and restore</string>
+    <string name="desc_backup_row">Settings and history in one file</string>
+    <string name="msg_backup_intro">A backup holds the settings, the converter’s unit pairs, the word size in Programmer mode and both history lists.</string>
+    <string name="msg_backup_not_in">Expressions being typed and the last result are not in the backup.</string>
+    <string name="label_create_backup">Create backup</string>
+    <string name="label_last_backup">Last backup: %s</string>
+    <string name="label_no_backup">No backup yet</string>
+    <string name="label_saving_backup">Saving…</string>
+    <string name="label_restore_backup">Restore from backup</string>
+    <string name="desc_restore_backup">Replaces the settings and the history</string>
+    <string name="msg_backup_saved"><![CDATA[Backup saved as <b>%s</b>]]></string>
+    <string name="error_backup_write"><![CDATA[Calculator couldn’t write <b>%s</b>.]]></string>
+    <string name="error_backup_not_ours"><![CDATA[<b>%s</b> isn’t a Calculator backup.]]></string>
+    <string name="error_backup_newer">This backup was made by a newer version of Calculator. Update the app to restore it.</string>
+    <string name="error_backup_unreadable"><![CDATA[Calculator couldn’t read <b>%s</b>.]]></string>
+    <string name="title_restore_confirm">Restore this backup?</string>
+    <string name="msg_restore_from"><![CDATA[<b>%1$s</b> – made on %2$s with version %3$s.]]></string>
+    <string name="msg_restore_summary">Calculations: %1$d, in Programmer mode: %2$d. The current settings and history will be replaced.</string>
+    <string name="msg_restored">Restored calculations: %1$d, in Programmer mode: %2$d</string>
+    <string name="button_show">Show</string>
+
     <!-- Settings -->
     <string name="title_settings">Settings</string>
     <string name="title_settings_group_app">App</string>

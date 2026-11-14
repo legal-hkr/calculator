@@ -244,6 +244,44 @@
     <string name="label_today">Dzisiaj</string>
     <string name="label_yesterday">Wczoraj</string>
 
+    <!-- Settings: calculation, keypad, history, backup -->
+    <string name="title_group_calculation">Obliczenia</string>
+    <string name="label_decimal_places">Miejsca po przecinku</string>
+    <string name="label_automatic">Automatycznie</string>
+    <string name="label_scientific_notation">Notacja naukowa</string>
+    <string name="label_always">Zawsze</string>
+    <string name="label_never">Nigdy</string>
+    <string name="desc_notation_automatic">Gdy liczba się nie mieści</string>
+    <string name="desc_notation_always">Każdy wynik jako 1,23 × 10¹⁵</string>
+    <string name="desc_notation_never">Wszystkie cyfry. Długie liczby można przewijać w bok.</string>
+    <string name="label_thousands_separator">Separator tysięcy</string>
+    <string name="title_group_keypad">Klawiatura</string>
+    <string name="label_vibrate_on_key">Wibracja przy naciśnięciu klawisza</string>
+    <string name="title_settings_history">Historia</string>
+    <string name="desc_settings_history_row">Ostatnie 1000 obliczeń w każdym trybie</string>
+    <string name="desc_history_limit">Historia przechowuje ostatnie 1000 obliczeń w każdym trybie. Wyczyszczenie historii usuwa obie listy: trybu Kalkulator i trybu Programista.</string>
+    <string name="button_clear_history">Wyczyść historię</string>
+    <string name="title_backup">Kopia zapasowa</string>
+    <string name="desc_backup_row">Ustawienia i historia w jednym pliku</string>
+    <string name="msg_backup_intro">Kopia obejmuje ustawienia, pary jednostek przelicznika, długość słowa w trybie Programista i obie listy historii.</string>
+    <string name="msg_backup_not_in">Kopia nie zawiera wpisywanych wyrażeń ani ostatniego wyniku.</string>
+    <string name="label_create_backup">Utwórz kopię</string>
+    <string name="label_last_backup">Ostatnia kopia: %s</string>
+    <string name="label_no_backup">Nie utworzono jeszcze kopii</string>
+    <string name="label_saving_backup">Zapisywanie…</string>
+    <string name="label_restore_backup">Przywróć z kopii</string>
+    <string name="desc_restore_backup">Zastępuje ustawienia i historię</string>
+    <string name="msg_backup_saved"><![CDATA[Zapisano kopię jako <b>%s</b>]]></string>
+    <string name="error_backup_write"><![CDATA[Nie udało się zapisać pliku <b>%s</b>.]]></string>
+    <string name="error_backup_not_ours"><![CDATA[Plik <b>%s</b> nie jest kopią zapasową tej aplikacji.]]></string>
+    <string name="error_backup_newer">Tę kopię utworzyła nowsza wersja aplikacji. Zaktualizuj aplikację, żeby ją przywrócić.</string>
+    <string name="error_backup_unreadable"><![CDATA[Nie udało się odczytać pliku <b>%s</b>.]]></string>
+    <string name="title_restore_confirm">Przywrócić tę kopię?</string>
+    <string name="msg_restore_from"><![CDATA[<b>%1$s</b> – kopia z %2$s, wersja %3$s.]]></string>
+    <string name="msg_restore_summary">Obliczenia: %1$d, w trybie Programista: %2$d. Obecne ustawienia i historia zostaną zastąpione.</string>
+    <string name="msg_restored">Przywrócono obliczenia: %1$d, w trybie Programista: %2$d</string>
+    <string name="button_show">Pokaż</string>
+
     <!-- Settings -->
     <string name="title_settings">Ustawienia</string>
     <string name="title_settings_group_app">Aplikacja</string>

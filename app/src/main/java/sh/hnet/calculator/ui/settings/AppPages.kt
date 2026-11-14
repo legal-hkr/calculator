@@ -27,6 +27,15 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import kotlinx.coroutines.launch
 import sh.hnet.calculator.CalculatorApplication
+import androidx.lifecycle.viewmodel.compose.viewModel
+import sh.hnet.calculator.data.CalculatorStore
+import sh.hnet.calculator.data.ConverterStore
+import sh.hnet.calculator.data.ProgrammerStore
+import sh.hnet.calculator.engine.number.AngleUnit
+import sh.hnet.calculator.engine.programmer.Word
+import sh.hnet.calculator.ui.calculator.CalculatorViewModel
+import sh.hnet.calculator.ui.converter.ConverterViewModel
+import sh.hnet.calculator.ui.programmer.ProgrammerViewModel
 import sh.hnet.calculator.R
 import sh.hnet.calculator.ui.components.SettingsDescription
 import sh.hnet.calculator.ui.components.SettingsGroup
@@ -85,6 +94,10 @@ fun ResetScreen(onBack: () -> Unit) {
     val scope = rememberCoroutineScope()
     var confirming by rememberSaveable { mutableStateOf(false) }
     val done = stringResource(R.string.msg_defaults_restored)
+    // The modes hold their state while the app runs: they take the defaults over too
+    val calculator: CalculatorViewModel = viewModel()
+    val programmer: ProgrammerViewModel = viewModel()
+    val converter: ConverterViewModel = viewModel()
     SettingsPage(title = stringResource(R.string.title_settings_reset), onBack = onBack) {
         SettingsDescription(stringResource(R.string.desc_settings_reset))
         // A single destructive action: an outlined button in the error color (owner's decision, as in Music)
@@ -100,6 +113,13 @@ fun ResetScreen(onBack: () -> Unit) {
                 confirming = false
                 scope.launch {
                     preferences.restoreDefaults()
+                    // Also settings of the modes (SPEC §13.5): the angle unit, the Programmer's word, the converter's pairs; History and Ans stay
+                    CalculatorStore(app).saveAngle(AngleUnit.DEGREES)
+                    ProgrammerStore(app).saveWord(Word())
+                    ConverterStore(app).restoreDefaultPairs()
+                    calculator.applyAngle(AngleUnit.DEGREES)
+                    programmer.applyWord(Word())
+                    converter.applyPairs(emptyMap())
                     Toast.makeText(context, done, Toast.LENGTH_SHORT).show()
                     // Last: a language change recreates the activity
                     if (currentLanguageTag(context).isNotEmpty()) setLanguage(context, "")

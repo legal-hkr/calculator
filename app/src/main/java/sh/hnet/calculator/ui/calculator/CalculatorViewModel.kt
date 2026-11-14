@@ -244,6 +244,14 @@ class CalculatorViewModel(application: Application) : AndroidViewModel(applicati
         save()
     }
 
+    /** From Reset or a restored backup. */
+    fun applyAngle(a: AngleUnit) {
+        if (!loaded) return
+        angle = a
+        if (!showsResult) refresh()
+        save()
+    }
+
     fun setPanel(open: Boolean) {
         if (panelOpen == open) return
         panelOpen = open

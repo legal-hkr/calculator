@@ -51,6 +51,14 @@ class ProgrammerStore(private val context: Context) {
         )
     }
 
+    /** From a backup or Reset: the word alone. */
+    suspend fun saveWord(word: Word) {
+        context.programmerState.edit { p ->
+            p[bits] = word.bits
+            p[signed] = word.signed
+        }
+    }
+
     suspend fun save(state: State) {
         val encoded = TokenCodec.encode(state.expression.tokens)
         context.programmerState.edit { p ->

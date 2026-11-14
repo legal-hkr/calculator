@@ -10,6 +10,7 @@ import androidx.room3.PrimaryKey
 import androidx.room3.Query
 import androidx.room3.Room
 import androidx.room3.RoomDatabase
+import androidx.room3.Transaction
 import androidx.sqlite.driver.AndroidSQLiteDriver
 import kotlinx.coroutines.flow.Flow
 
@@ -79,6 +80,13 @@ interface HistoryDao {
 
     @Query("DELETE FROM history")
     suspend fun deleteEverything()
+
+    /** Restore from backup: both lists replaced at once (no merging). */
+    @Transaction
+    suspend fun replaceAll(entries: List<HistoryEntry>) {
+        deleteEverything()
+        insertAll(entries)
+    }
 }
 
 @Database(entities = [HistoryEntry::class], version = 1)
