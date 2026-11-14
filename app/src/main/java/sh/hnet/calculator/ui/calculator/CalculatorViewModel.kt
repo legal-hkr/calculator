@@ -13,6 +13,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runInterruptible
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import sh.hnet.calculator.data.CalculatorStore
 import sh.hnet.calculator.CalculatorApplication
 import sh.hnet.calculator.data.HistoryEntry
@@ -68,6 +70,19 @@ class CalculatorViewModel(application: Application) : AndroidViewModel(applicati
         private set
     var second by mutableStateOf(false)
         private set
+
+    /** History is kept (Settings › History): else nothing typed outlives the process and no entry is written. */
+    @Volatile private var keep = true
+
+    init {
+        viewModelScope.launch {
+            (application as CalculatorApplication).preferences.calcSettings.map { it.keepHistory }.distinctUntilChanged().collect {
+                keep = it
+                // Turned off: what was saved goes now, not at the next change
+                if (!it) saveNow()
+            }
+        }
+    }
 
     /** The last result: what an operator after "=" goes on from. */
     private var ans: Real? = null
@@ -199,6 +214,7 @@ class CalculatorViewModel(application: Application) : AndroidViewModel(applicati
 
     /** Every successful "=" goes to History (SPEC §10.1); written off the main thread. */
     private fun record(tokens: List<Token>, value: Real) {
+        if (!keep) return
         val at = System.currentTimeMillis()
         viewModelScope.launch(Dispatchers.Default) {
             history.add(HistoryEntry(mode = HistoryMode.CALCULATOR.name, expression = TokenCodec.encode(tokens), result = TokenCodec.encodeReal(value), createdAt = at))
@@ -325,7 +341,9 @@ class CalculatorViewModel(application: Application) : AndroidViewModel(applicati
         }
     }
 
-    private fun state() = CalculatorStore.State(expression, showsResult, ans, angle, panelOpen, second)
+    private fun state() =
+        if (keep) CalculatorStore.State(expression, showsResult, ans, angle, panelOpen, second)
+        else CalculatorStore.State(angle = angle, panelOpen = panelOpen, second = second)
 
     private companion object {
         const val MORE_DIGITS = 50

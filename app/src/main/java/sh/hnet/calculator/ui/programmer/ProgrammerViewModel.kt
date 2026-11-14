@@ -11,6 +11,8 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import sh.hnet.calculator.CalculatorApplication
 import sh.hnet.calculator.data.HistoryEntry
 import sh.hnet.calculator.data.HistoryMode
@@ -62,6 +64,19 @@ class ProgrammerViewModel(application: Application) : AndroidViewModel(applicati
         private set
 
     private var ans: BigInteger? = null
+
+    /** History is kept (Settings › History): else nothing typed outlives the process and no entry is written. */
+    @Volatile private var keep = true
+
+    init {
+        viewModelScope.launch {
+            (application as CalculatorApplication).preferences.calcSettings.map { it.keepHistory }.distinctUntilChanged().collect {
+                keep = it
+                // Turned off: what was saved goes now, not at the next change
+                if (!it) saveNow()
+            }
+        }
+    }
     private var saveJob: Job? = null
 
     init {
@@ -219,6 +234,7 @@ class ProgrammerViewModel(application: Application) : AndroidViewModel(applicati
     }
 
     private fun record(tokens: List<Token>, v: BigInteger) {
+        if (!keep) return
         val at = System.currentTimeMillis()
         val entry = HistoryEntry(
             mode = HistoryMode.PROGRAMMER.name,
@@ -248,7 +264,9 @@ class ProgrammerViewModel(application: Application) : AndroidViewModel(applicati
         wrapped = e?.wrapped ?: false
     }
 
-    private fun state() = ProgrammerStore.State(expression, showsResult, ans, base, word)
+    private fun state() =
+        if (keep) ProgrammerStore.State(expression, showsResult, ans, base, word)
+        else ProgrammerStore.State(base = base, word = word)
 
     private fun save() {
         saveJob?.cancel()

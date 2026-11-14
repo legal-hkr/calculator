@@ -78,7 +78,8 @@ fun MainScreen(onOpenSettings: () -> Unit, onOpenHistory: (HistoryMode) -> Unit,
             title = { ModeButton(current) { scope.launch { store.saveMode(it) } } },
             actions = {
                 // The Converter has no History: its results never go there (SPEC §7.2)
-                if (current != AppMode.CONVERTER) {
+                // Nor when History is off (Settings › History)
+                if (current != AppMode.CONVERTER && settings.keepHistory) {
                     TooltipIconButton(R.drawable.ic_history, stringResource(R.string.tooltip_history), {
                         onOpenHistory(if (current == AppMode.PROGRAMMER) HistoryMode.PROGRAMMER else HistoryMode.CALCULATOR)
                     })

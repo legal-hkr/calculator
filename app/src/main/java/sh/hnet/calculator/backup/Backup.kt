@@ -42,6 +42,7 @@ data class BackupSettings(
     val thousandsSeparator: Boolean? = null,
     val vibrateOnKey: Boolean? = null,
     val angleUnit: String? = null,
+    val keepHistory: Boolean? = null,
 )
 
 @Serializable

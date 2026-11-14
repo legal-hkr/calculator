@@ -285,6 +285,15 @@
     <string name="msg_restored">Restored calculations: %1$d, in Programmer mode: %2$d</string>
     <string name="button_show">Show</string>
 
+    <!-- Settings: keeping history -->
+    <string name="label_keep_history">Save history</string>
+    <string name="desc_keep_history_on">Calculations, the last result and the converter’s values are kept</string>
+    <string name="desc_keep_history_off">Nothing is kept after the app closes</string>
+    <string name="label_history_off">Off</string>
+    <string name="title_confirm_history_off">Turn off history?</string>
+    <string name="msg_confirm_history_off">Both history lists will be deleted. After that, calculations, the last result and the converter’s values will be discarded when the app closes.</string>
+    <string name="button_turn_off">Turn off</string>
+
     <!-- Settings -->
     <string name="title_settings">Settings</string>
     <string name="title_settings_group_app">App</string>

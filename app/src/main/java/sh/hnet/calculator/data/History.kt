@@ -136,6 +136,9 @@ class HistoryRepository(private val dao: HistoryDao) {
 
     suspend fun purge(at: Long) = dao.purge(at)
 
+    /** History turned off: both lists gone for good, no Undo (nothing may be kept). */
+    suspend fun deleteAll() = dao.deleteEverything()
+
     /** At start: what waited for an Undo when the app went away. */
     suspend fun purgeRemoved() = dao.purgeAll()
 

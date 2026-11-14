@@ -282,6 +282,15 @@
     <string name="msg_restored">Przywrócono obliczenia: %1$d, w trybie Programista: %2$d</string>
     <string name="button_show">Pokaż</string>
 
+    <!-- Settings: keeping history -->
+    <string name="label_keep_history">Zapisuj historię</string>
+    <string name="desc_keep_history_on">Obliczenia, ostatni wynik i wartości przelicznika są zachowywane</string>
+    <string name="desc_keep_history_off">Po zamknięciu aplikacji nic nie jest zachowywane</string>
+    <string name="label_history_off">Wyłączona</string>
+    <string name="title_confirm_history_off">Wyłączyć historię?</string>
+    <string name="msg_confirm_history_off">Obie listy historii zostaną usunięte. Od tej chwili obliczenia, ostatni wynik i wartości przelicznika będą usuwane przy zamknięciu aplikacji.</string>
+    <string name="button_turn_off">Wyłącz</string>
+
     <!-- Settings -->
     <string name="title_settings">Ustawienia</string>
     <string name="title_settings_group_app">Aplikacja</string>

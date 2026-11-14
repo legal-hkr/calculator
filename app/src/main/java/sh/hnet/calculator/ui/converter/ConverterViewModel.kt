@@ -11,6 +11,9 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
+import sh.hnet.calculator.CalculatorApplication
 import kotlinx.coroutines.runInterruptible
 import kotlinx.coroutines.withContext
 import sh.hnet.calculator.data.ConverterStore
@@ -70,6 +73,19 @@ class ConverterViewModel(application: Application) : AndroidViewModel(applicatio
         private set
     var error by mutableStateOf<DisplayError?>(null)
         private set
+
+    /** History is kept (Settings › History): else nothing typed outlives the process and no entry is written. */
+    @Volatile private var keep = true
+
+    init {
+        viewModelScope.launch {
+            (application as CalculatorApplication).preferences.calcSettings.map { it.keepHistory }.distinctUntilChanged().collect {
+                keep = it
+                // Turned off: what was saved goes now, not at the next change
+                if (!it) saveNow()
+            }
+        }
+    }
 
     private var style = NumberStyle(decimalComma = false)
     private var width = 12
@@ -247,7 +263,7 @@ class ConverterViewModel(application: Application) : AndroidViewModel(applicatio
         val m = memories
         saveJob = viewModelScope.launch(Dispatchers.Default) {
             delay(300)
-            store.save(c, m)
+            store.save(c, m, keep)
         }
     }
 
@@ -257,6 +273,6 @@ class ConverterViewModel(application: Application) : AndroidViewModel(applicatio
         saveJob?.cancel()
         val c = category
         val m = memories
-        viewModelScope.launch(Dispatchers.Default + NonCancellable) { store.save(c, m) }
+        viewModelScope.launch(Dispatchers.Default + NonCancellable) { store.save(c, m, keep) }
     }
 }

@@ -48,8 +48,9 @@ class ConverterStore(private val context: Context) {
         )
     }
 
-    suspend fun save(current: Category, memories: Map<Category, Memory>) {
-        val encoded = memories.mapValues { TokenCodec.encode(it.value.tokens) }
+    /** [keepValues] false (History off): the values are not written. */
+    suspend fun save(current: Category, memories: Map<Category, Memory>, keepValues: Boolean = true) {
+        val encoded = memories.mapValues { if (keepValues) TokenCodec.encode(it.value.tokens) else "" }
         context.converterState.edit { p ->
             p[category] = current.name
             memories.forEach { (c, m) ->
@@ -68,6 +69,11 @@ class ConverterStore(private val context: Context) {
                 if (pairOf != null) p[pair(c)] = "${pairOf.first},${pairOf.second}" else p.remove(pair(c))
             }
         }
+    }
+
+    /** History turned off: every category's value goes; the pairs stay. */
+    suspend fun forget() {
+        context.converterState.edit { p -> Category.entries.forEach { p.remove(text(it)) } }
     }
 
     /** Settings › Reset: every category back to its default pair; the values stay. */

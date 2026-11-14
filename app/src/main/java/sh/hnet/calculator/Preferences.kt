@@ -20,6 +20,12 @@ data class CalcSettings(
     val notation: Notation = Notation.AUTOMATIC,
     val grouping: Boolean = true,
     val vibrate: Boolean = true,
+    /**
+     * History and everything typed are kept between runs (owner, 15 Nov 2026). Off: no History
+     * entry is written, and the expressions, the last result and the converter's values live only
+     * while the app runs.
+     */
+    val keepHistory: Boolean = true,
 )
 
 /** Choices the user made in the UI that outlive the process (app-private, not backed up by the system). Every stage adds its settings here. */
@@ -28,6 +34,7 @@ class Preferences(private val context: Context) {
     private val notation = stringPreferencesKey("notation")
     private val grouping = booleanPreferencesKey("grouping")
     private val vibrate = booleanPreferencesKey("vibrate")
+    private val keepHistory = booleanPreferencesKey("keep_history")
 
     val calcSettings: Flow<CalcSettings> = context.settings.data.map { p ->
         CalcSettings(
@@ -35,6 +42,7 @@ class Preferences(private val context: Context) {
             notation = p[notation]?.let { name -> Notation.entries.firstOrNull { it.name == name } } ?: Notation.AUTOMATIC,
             grouping = p[grouping] ?: true,
             vibrate = p[vibrate] ?: true,
+            keepHistory = p[keepHistory] ?: true,
         )
     }
 
@@ -42,6 +50,7 @@ class Preferences(private val context: Context) {
     suspend fun setNotation(value: Notation) = context.settings.edit { it[notation] = value.name }
     suspend fun setGrouping(value: Boolean) = context.settings.edit { it[grouping] = value }
     suspend fun setVibrate(value: Boolean) = context.settings.edit { it[vibrate] = value }
+    suspend fun setKeepHistory(value: Boolean) = context.settings.edit { it[keepHistory] = value }
 
     /** For a backup. */
     suspend fun current(): CalcSettings = calcSettings.first()
@@ -52,6 +61,7 @@ class Preferences(private val context: Context) {
         p[notation] = s.notation.name
         p[grouping] = s.grouping
         p[vibrate] = s.vibrate
+        p[keepHistory] = s.keepHistory
     }
 
     /** Restore defaults (Settings › Reset): every setting of this store back to its default. */

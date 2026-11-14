@@ -114,7 +114,11 @@ fun SettingsRootScreen(
                 SettingsNavigationRow(shapes, R.drawable.ic_settings_backup_restore, stringResource(R.string.title_backup), stringResource(R.string.desc_backup_row), onClick = onOpenBackup)
             }
             row { shapes ->
-                SettingsNavigationRow(shapes, R.drawable.ic_history, stringResource(R.string.title_settings_history), stringResource(R.string.desc_settings_history_row), onClick = onOpenHistory)
+                SettingsNavigationRow(
+                    shapes, R.drawable.ic_history, stringResource(R.string.title_settings_history),
+                    stringResource(if (settings.keepHistory) R.string.desc_settings_history_row else R.string.label_history_off),
+                    onClick = onOpenHistory,
+                )
             }
             row { shapes ->
                 SettingsNavigationRow(shapes, R.drawable.ic_restart_alt, stringResource(R.string.title_settings_reset), stringResource(R.string.desc_settings_reset_row), onClick = onOpenReset)

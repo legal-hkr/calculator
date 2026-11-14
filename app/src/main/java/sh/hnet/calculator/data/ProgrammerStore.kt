@@ -51,6 +51,16 @@ class ProgrammerStore(private val context: Context) {
         )
     }
 
+    /** History turned off: what was typed and the last result go; the base and the word stay. */
+    suspend fun forget() {
+        context.programmerState.edit { p ->
+            p.remove(tokens)
+            p.remove(cursor)
+            p.remove(showsResult)
+            p.remove(ans)
+        }
+    }
+
     /** From a backup or Reset: the word alone. */
     suspend fun saveWord(word: Word) {
         context.programmerState.edit { p ->

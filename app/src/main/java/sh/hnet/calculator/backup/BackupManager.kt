@@ -98,6 +98,7 @@ class BackupManager(private val app: CalculatorApplication, private val stamps: 
                 notation = s.scientificNotation?.let { name -> Notation.entries.firstOrNull { it.name == name } } ?: Notation.AUTOMATIC,
                 grouping = s.thousandsSeparator ?: true,
                 vibrate = s.vibrateOnKey ?: true,
+                keepHistory = s.keepHistory ?: true,
             ),
         )
         val angle = s.angleUnit?.let { name -> AngleUnit.entries.firstOrNull { it.name == name } } ?: AngleUnit.DEGREES
@@ -150,6 +151,7 @@ class BackupManager(private val app: CalculatorApplication, private val stamps: 
                 thousandsSeparator = settings.grouping,
                 vibrateOnKey = settings.vibrate,
                 angleUnit = calculator.angle.name,
+                keepHistory = settings.keepHistory,
             ),
             programmer = BackupProgrammer(programmer.word.bits, programmer.word.signed),
             converterPairs = converter.memories.map { (c, m) -> BackupPair(c.name, m.from, m.to) },

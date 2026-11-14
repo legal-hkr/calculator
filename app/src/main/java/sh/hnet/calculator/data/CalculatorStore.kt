@@ -71,6 +71,16 @@ class CalculatorStore(private val context: Context) {
         )
     }
 
+    /** History turned off: what was typed and the last result go; the angle unit and the panel stay. */
+    suspend fun forget() {
+        context.calculatorState.edit { p ->
+            p.remove(tokens)
+            p.remove(cursor)
+            p.remove(showsResult)
+            p.remove(ans)
+        }
+    }
+
     /** From a backup or Reset: the angle unit alone. */
     suspend fun saveAngle(a: AngleUnit) {
         context.calculatorState.edit { it[angle] = a.name }
