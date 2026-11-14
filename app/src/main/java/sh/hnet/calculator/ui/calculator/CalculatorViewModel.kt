@@ -20,6 +20,11 @@ import sh.hnet.calculator.engine.expr.Expression
 import sh.hnet.calculator.engine.expr.Key
 import sh.hnet.calculator.engine.expr.Parser
 import sh.hnet.calculator.engine.expr.Token
+import sh.hnet.calculator.engine.expr.Op
+import sh.hnet.calculator.engine.expr.Const
+import sh.hnet.calculator.engine.expr.Fn
+import sh.hnet.calculator.engine.expr.Paste
+import sh.hnet.calculator.engine.format.ExpressionText
 import sh.hnet.calculator.engine.format.Formatted
 import sh.hnet.calculator.engine.format.Formatter
 import sh.hnet.calculator.engine.format.NumberStyle
@@ -54,9 +59,20 @@ class CalculatorViewModel(application: Application) : AndroidViewModel(applicati
         private set
     var angle by mutableStateOf(AngleUnit.DEGREES)
         private set
+    var panelOpen by mutableStateOf(false)
+        private set
+    var second by mutableStateOf(false)
+        private set
 
     /** The last result: what an operator after "=" goes on from. */
     private var ans: Real? = null
+
+    /** There is a last result for the Ans key. */
+    var hasAns by mutableStateOf(false)
+        private set
+
+    /** The result's width in characters: grows by [MORE_DIGITS] as the user scrolls for more (SPEC §6.6). */
+    private var resultWidth = 12
 
     private var style = NumberStyle(decimalComma = false)
     private var mainChars = 12
@@ -71,7 +87,10 @@ class CalculatorViewModel(application: Application) : AndroidViewModel(applicati
             val s = store.load()
             expression = s.expression
             ans = s.ans
+            hasAns = s.ans != null
             angle = s.angle
+            panelOpen = s.panelOpen
+            second = s.second
             if (s.showsResult) evaluated = s.expression.tokens
             loaded = true
             refresh()
@@ -86,6 +105,7 @@ class CalculatorViewModel(application: Application) : AndroidViewModel(applicati
         this.style = style
         this.mainChars = mainChars
         this.previewChars = previewChars
+        resultWidth = mainChars
         refresh()
     }
 
@@ -141,6 +161,8 @@ class CalculatorViewModel(application: Application) : AndroidViewModel(applicati
             when (evaluation) {
                 is Evaluation.Value -> {
                     ans = evaluation.value
+                    hasAns = true
+                    resultWidth = width
                     evaluated = tokens
                     result = formatted
                     preview = null
@@ -161,6 +183,77 @@ class CalculatorViewModel(application: Application) : AndroidViewModel(applicati
         }
     }
 
+    /** The result's next digits, as the user scrolls it (SPEC §6.6): in chunks, up to 1000 significant digits. */
+    fun moreDigits() {
+        val shown = result ?: return
+        if (shown.exact || style.decimals != null || resultWidth >= Formatter.MAX_DIGITS + 20) return
+        resultWidth = minOf(resultWidth + MORE_DIGITS, Formatter.MAX_DIGITS + 20)
+        refresh()
+    }
+
+    /** The last result as a whole number at the cursor (the Ans key). */
+    fun insertAns() {
+        val last = ans ?: return
+        press(Key.Insert(Token.Value(last)))
+    }
+
+    /** 10ˣ: `10^(`, after a number with an explicit × (digits can't stand next to digits). */
+    fun insertPowerOfTen() {
+        if (!showsResult && expression.tokens.getOrNull(expression.cursor - 1).let { it is Token.Digit || it == Token.Point }) {
+            press(Key.Insert(Token.Operator(Op.TIMES)))
+        }
+        listOf(Key.Insert(Token.Digit(1)), Key.Insert(Token.Digit(0)), Key.Insert(Token.Operator(Op.POWER)), Key.Insert(Token.Open)).forEach { press(it) }
+    }
+
+    /** eˣ: `e^(`. */
+    fun insertExp() {
+        listOf(Key.Insert(Token.Constant(Const.E)), Key.Insert(Token.Operator(Op.POWER)), Key.Insert(Token.Open)).forEach { press(it) }
+    }
+
+    fun toggleAngle() {
+        angle = if (angle == AngleUnit.DEGREES) AngleUnit.RADIANS else AngleUnit.DEGREES
+        if (!showsResult) refresh()
+        save()
+    }
+
+    fun setPanel(open: Boolean) {
+        if (panelOpen == open) return
+        panelOpen = open
+        save()
+    }
+
+    fun toggleSecond() {
+        second = !second
+        save()
+    }
+
+    /** The angle chip shows when the panel is open or the expression has a trigonometric function (SPEC §6.7). */
+    val showsAngle: Boolean
+        get() = panelOpen || expression.tokens.any { it is Token.Function && it.fn in TRIGONOMETRIC }
+
+    /**
+     * Text from the clipboard at the cursor (after "=": a new expression). False when it can't be
+     * read: nothing changes and the UI says so.
+     */
+    fun paste(text: String): Boolean {
+        if (!loaded) return false
+        val tokens = Paste.read(text, style.decimalComma, ans) ?: return false
+        equalsJob?.cancel()
+        error = null
+        val base = if (showsResult) Expression() else expression
+        evaluated = null
+        result = null
+        expression = base.insertAll(tokens)
+        changed()
+        return true
+    }
+
+    /** The expression for the clipboard, ASCII only. */
+    fun expressionForCopy(): String = ExpressionText.ascii(if (showsResult) evaluated.orEmpty() else expression.tokens, style)
+
+    /** The result for the clipboard: as shown plus every digit computed so far. */
+    fun resultForCopy(): String? = result?.copy
+
     private fun changed() {
         refresh()
         save()
@@ -173,7 +266,7 @@ class CalculatorViewModel(application: Application) : AndroidViewModel(applicati
         val style = style
         if (shown != null) {
             val value = ans ?: return
-            val width = mainChars
+            val width = resultWidth
             previewJob = viewModelScope.launch {
                 result = withContext(Dispatchers.Default) { runInterruptible { Formatter.format(value, style, width) } }
             }
@@ -196,7 +289,12 @@ class CalculatorViewModel(application: Application) : AndroidViewModel(applicati
         }
     }
 
-    private fun state() = CalculatorStore.State(expression, showsResult, ans, angle)
+    private fun state() = CalculatorStore.State(expression, showsResult, ans, angle, panelOpen, second)
+
+    private companion object {
+        const val MORE_DIGITS = 50
+        val TRIGONOMETRIC = setOf(Fn.SIN, Fn.COS, Fn.TAN, Fn.ASIN, Fn.ACOS, Fn.ATAN)
+    }
 
     private fun save() {
         saveJob?.cancel()

@@ -39,6 +39,34 @@
     <string name="error_malformed">The expression is not valid.</string>
     <string name="error_incomplete">The expression is incomplete.</string>
 
+    <string name="content_description_second">Inverse functions</string>
+    <string name="content_description_sin">Sine</string>
+    <string name="content_description_cos">Cosine</string>
+    <string name="content_description_tan">Tangent</string>
+    <string name="content_description_asin">Arcsine</string>
+    <string name="content_description_acos">Arccosine</string>
+    <string name="content_description_atan">Arctangent</string>
+    <string name="content_description_ln">Natural logarithm</string>
+    <string name="content_description_log">Base-10 logarithm</string>
+    <string name="content_description_exp">e to the power</string>
+    <string name="content_description_exp10">Ten to the power</string>
+    <string name="content_description_e">Euler’s number</string>
+    <string name="content_description_ee">Scientific notation exponent</string>
+    <string name="content_description_ans">Last result</string>
+    <string name="content_description_mod">Remainder</string>
+    <string name="content_description_reciprocal">Reciprocal</string>
+    <string name="content_description_abs">Absolute value</string>
+    <string name="content_description_root">Nth root</string>
+    <string name="content_description_show_scientific">Show scientific functions</string>
+    <string name="content_description_hide_scientific">Hide scientific functions</string>
+    <string name="label_angle_deg" translatable="false">DEG</string>
+    <string name="label_angle_rad" translatable="false">RAD</string>
+    <string name="content_description_angle_unit_deg">Angle unit: degrees</string>
+    <string name="content_description_angle_unit_rad">Angle unit: radians</string>
+    <string name="label_switch_to_radians">Switch to radians</string>
+    <string name="label_switch_to_degrees">Switch to degrees</string>
+    <string name="error_paste">The clipboard doesn’t contain a number or an expression.</string>
+
     <!-- Settings -->
     <string name="title_settings">Settings</string>
     <string name="title_settings_group_app">App</string>

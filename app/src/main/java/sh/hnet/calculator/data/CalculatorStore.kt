@@ -16,7 +16,7 @@ private val Context.calculatorState by preferencesDataStore("calculator")
 
 /**
  * The calculator's state between runs (SPEC §4.1): the expression with its cursor, whether a
- * result is shown, Ans and the angle unit. A memory, not a setting: Reset leaves it.
+ * result is shown, Ans, the angle unit and the scientific panel's state. A memory, not a setting: Reset leaves it.
  */
 class CalculatorStore(private val context: Context) {
 
@@ -26,6 +26,10 @@ class CalculatorStore(private val context: Context) {
         val showsResult: Boolean = false,
         val ans: Real? = null,
         val angle: AngleUnit = AngleUnit.DEGREES,
+        /** The scientific panel is open (SPEC §5.4). */
+        val panelOpen: Boolean = false,
+        /** 2nd is on. */
+        val second: Boolean = false,
     )
 
     private val tokens = stringPreferencesKey("tokens")
@@ -33,6 +37,8 @@ class CalculatorStore(private val context: Context) {
     private val showsResult = booleanPreferencesKey("shows_result")
     private val ans = stringPreferencesKey("ans")
     private val angle = stringPreferencesKey("angle")
+    private val panelOpen = booleanPreferencesKey("panel_open")
+    private val second = booleanPreferencesKey("second")
 
     suspend fun load(): State {
         val p = context.calculatorState.data.first()
@@ -44,6 +50,8 @@ class CalculatorStore(private val context: Context) {
             showsResult = (p[showsResult] ?: false) && answer != null,
             ans = answer,
             angle = p[angle]?.let { name -> AngleUnit.entries.firstOrNull { it.name == name } } ?: AngleUnit.DEGREES,
+            panelOpen = p[panelOpen] ?: false,
+            second = p[second] ?: false,
         )
     }
 
@@ -57,6 +65,8 @@ class CalculatorStore(private val context: Context) {
             p[showsResult] = state.showsResult
             if (encodedAns != null) p[ans] = encodedAns else p.remove(ans)
             p[angle] = state.angle.name
+            p[panelOpen] = state.panelOpen
+            p[second] = state.second
         }
     }
 }

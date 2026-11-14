@@ -84,6 +84,64 @@ class ExpressionText(val text: String, val offsets: IntArray) {
         private fun isSign(prev: Token?): Boolean =
             prev == null || prev == Token.Open || prev is Token.Function || prev is Token.Operator || prev == Token.Sqrt || prev == Token.Not || prev == Token.Exponent
 
+        /**
+         * The expression for the clipboard: ASCII only (owner's rule), so it pastes anywhere and back
+         * into the calculator – `*` `/` `-` `^`, `sqrt`, `pi`, `asin(`, no grouping; the language's
+         * decimal separator; a whole number as its digits (`E` for the exponent).
+         */
+        fun ascii(tokens: List<Token>, style: NumberStyle): String {
+            val sb = StringBuilder()
+            tokens.forEachIndexed { k, t ->
+                sb.append(
+                    when (t) {
+                        is Token.Digit -> digitChar(t.value).toString()
+                        Token.Point -> style.decimalSeparator.toString()
+                        Token.Exponent -> "E"
+                        is Token.Operator -> when (t.op) {
+                            Op.PLUS -> "+"
+                            Op.MINUS -> "-"
+                            Op.TIMES -> "*"
+                            Op.DIVIDE -> "/"
+                            Op.POWER -> "^"
+                            Op.ROOT -> " root "
+                            Op.MOD -> " mod "
+                            Op.AND -> " AND "
+                            Op.OR -> " OR "
+                            Op.XOR -> " XOR "
+                            Op.NAND -> " NAND "
+                            Op.NOR -> " NOR "
+                            Op.SHL -> " << "
+                            Op.SHR -> " >> "
+                            Op.ROL -> " RoL "
+                            Op.ROR -> " RoR "
+                        }
+                        Token.Open -> "("
+                        Token.Close -> ")"
+                        is Token.Function -> when (t.fn) {
+                            Fn.ASIN -> "asin("
+                            Fn.ACOS -> "acos("
+                            Fn.ATAN -> "atan("
+                            else -> t.fn.name.lowercase() + "("
+                        }
+                        is Token.Constant -> if (t.c == Const.PI) "pi" else "e"
+                        is Token.Postfix -> when (t.op) {
+                            PostOp.FACTORIAL -> "!"
+                            PostOp.PERCENT -> "%"
+                            PostOp.SQUARE -> "^2"
+                        }
+                        Token.Sqrt -> "sqrt"
+                        Token.Not -> "NOT "
+                        is Token.Value -> {
+                            val copy = Formatter.format(t.value, style.copy(grouping = false, decimals = null), 40).copy
+                            // A negative value after an operator keeps its own parentheses
+                            if (copy.startsWith("-") && tokens.getOrNull(k - 1).let { it is Token.Operator }) "($copy)" else copy
+                        }
+                    },
+                )
+            }
+            return sb.toString()
+        }
+
         /** Characters for a whole number in an expression: room for a usual result, not the whole line. */
         const val VALUE_WIDTH = 14
 

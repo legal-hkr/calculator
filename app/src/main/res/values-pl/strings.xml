@@ -38,6 +38,32 @@
     <string name="error_malformed">Wyrażenie jest niepoprawne.</string>
     <string name="error_incomplete">Wyrażenie jest niedokończone.</string>
 
+    <string name="content_description_second">Funkcje odwrotne</string>
+    <string name="content_description_sin">Sinus</string>
+    <string name="content_description_cos">Cosinus</string>
+    <string name="content_description_tan">Tangens</string>
+    <string name="content_description_asin">Arcus sinus</string>
+    <string name="content_description_acos">Arcus cosinus</string>
+    <string name="content_description_atan">Arcus tangens</string>
+    <string name="content_description_ln">Logarytm naturalny</string>
+    <string name="content_description_log">Logarytm dziesiętny</string>
+    <string name="content_description_exp">e do potęgi</string>
+    <string name="content_description_exp10">Dziesięć do potęgi</string>
+    <string name="content_description_e">Liczba e</string>
+    <string name="content_description_ee">Wykładnik notacji naukowej</string>
+    <string name="content_description_ans">Ostatni wynik</string>
+    <string name="content_description_mod">Reszta z dzielenia</string>
+    <string name="content_description_reciprocal">Odwrotność</string>
+    <string name="content_description_abs">Wartość bezwzględna</string>
+    <string name="content_description_root">Pierwiastek n-tego stopnia</string>
+    <string name="content_description_show_scientific">Pokaż funkcje naukowe</string>
+    <string name="content_description_hide_scientific">Ukryj funkcje naukowe</string>
+    <string name="content_description_angle_unit_deg">Jednostka kąta: stopnie</string>
+    <string name="content_description_angle_unit_rad">Jednostka kąta: radiany</string>
+    <string name="label_switch_to_radians">Przełącz na radiany</string>
+    <string name="label_switch_to_degrees">Przełącz na stopnie</string>
+    <string name="error_paste">W schowku nie ma liczby ani wyrażenia.</string>
+
     <!-- Settings -->
     <string name="title_settings">Ustawienia</string>
     <string name="title_settings_group_app">Aplikacja</string>

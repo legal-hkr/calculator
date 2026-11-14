@@ -23,6 +23,20 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
+import android.view.HapticFeedbackConstants
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.material3.AssistChip
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.ui.focus.focusProperties
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.layout.positionInRoot
+import androidx.compose.ui.unit.toSize
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalTextToolbar
+import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.onClick
+import sh.hnet.calculator.engine.number.AngleUnit
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.input.pointer.pointerInput
@@ -73,8 +87,11 @@ fun resultText(f: Formatted): AnnotatedString {
  * line and the result on the main line; while typing the expression with its cursor and the
  * preview, or the error in its place.
  */
+/** What the display hands to the clipboard and takes from it (the screen does the work). */
+class DisplayClipboard(val copyResult: () -> Unit, val copyExpression: () -> Unit, val paste: () -> Unit)
+
 @Composable
-fun Display(vm: CalculatorViewModel, style: NumberStyle, modifier: Modifier = Modifier) {
+fun Display(vm: CalculatorViewModel, style: NumberStyle, clipboard: DisplayClipboard, modifier: Modifier = Modifier) {
     val measurer = rememberTextMeasurer()
     val mainStyle = MaterialTheme.typography.displayMedium.tabular
     val previewStyle = MaterialTheme.typography.headlineSmall.tabular
@@ -85,6 +102,7 @@ fun Display(vm: CalculatorViewModel, style: NumberStyle, modifier: Modifier = Mo
         val previewChars = remember(widthPx, previewStyle) { charsThatFit(measurer.measure("0", previewStyle.copy(fontSize = SMALL_SIZES.last())).size.width, widthPx) }
         LaunchedEffect(style, mainChars, previewChars) { vm.layout(style, mainChars, previewChars) }
 
+        if (vm.showsAngle) AngleChip(vm.angle, vm::toggleAngle, Modifier.align(Alignment.TopStart))
         Column(Modifier.align(Alignment.BottomEnd).fillMaxWidth(), horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.Bottom) {
             val evaluated = vm.evaluated
             val result = vm.result
@@ -92,13 +110,16 @@ fun Display(vm: CalculatorViewModel, style: NumberStyle, modifier: Modifier = Mo
                 val small = ExpressionText.render(evaluated, style).text + " ="
                 FittedLine(AnnotatedString(small), previewStyle.copy(color = MaterialTheme.colorScheme.onSurfaceVariant), SMALL_SIZES, widthPx)
                 if (result != null) {
-                    FittedLine(resultText(result), mainStyle, MAIN_SIZES, widthPx, Modifier.semantics { liveRegion = LiveRegionMode.Polite })
+                    ResultLine(resultText(result), mainStyle, widthPx, onMore = vm::moreDigits, onCopy = clipboard.copyResult)
                 } else {
                     FittedLine(AnnotatedString(""), mainStyle, MAIN_SIZES, widthPx)
                 }
             } else {
                 val rendered = ExpressionText.render(vm.expression.tokens, style)
-                ExpressionLine(rendered, vm.expression.cursor, mainStyle, widthPx, onPlace = vm::moveCursor)
+                ExpressionLine(
+                    rendered, vm.expression.cursor, vm.expression.unclosedAtEnd(), mainStyle, widthPx,
+                    onPlace = vm::moveCursor, onCopy = clipboard.copyExpression, onPaste = clipboard.paste,
+                )
                 val error = vm.error
                 if (error != null) {
                     Text(
@@ -120,6 +141,71 @@ fun Display(vm: CalculatorViewModel, style: NumberStyle, modifier: Modifier = Mo
                 }
             }
         }
+    }
+}
+
+/** DEG or RAD at the display's top start; a tap switches (SPEC §6.7). */
+@Composable
+private fun AngleChip(angle: AngleUnit, onToggle: () -> Unit, modifier: Modifier) {
+    val degrees = angle == AngleUnit.DEGREES
+    val description = stringResource(if (degrees) R.string.content_description_angle_unit_deg else R.string.content_description_angle_unit_rad)
+    val action = stringResource(if (degrees) R.string.label_switch_to_radians else R.string.label_switch_to_degrees)
+    AssistChip(
+        onClick = onToggle,
+        label = { Text(stringResource(if (degrees) R.string.label_angle_deg else R.string.label_angle_rad), style = MaterialTheme.typography.labelLarge) },
+        modifier = modifier.focusProperties { canFocus = false }.semantics {
+            contentDescription = description
+            onClick(label = action) {
+                onToggle()
+                true
+            }
+        },
+    )
+}
+
+/**
+ * The result line (SPEC §6.6): shrunk in steps like the expression, then scrolled sideways from its
+ * start; scrolling towards its end – or dragging a result that still fits – asks for more digits.
+ * A long press copies it.
+ */
+@Composable
+private fun ResultLine(text: AnnotatedString, style: TextStyle, width: Int, onMore: () -> Unit, onCopy: () -> Unit) {
+    val size = fittedSize(text, style, MAIN_SIZES, width)
+    val scroll = rememberScrollState()
+    val more by rememberUpdatedState(onMore)
+    val near = with(LocalDensity.current) { 96.dp.toPx() }
+    LaunchedEffect(scroll) {
+        snapshotFlow { scroll.maxValue > 0 && scroll.value >= scroll.maxValue - near }.collect { if (it) more() }
+    }
+    val view = LocalView.current
+    LineBox(scroll, width, Modifier.semantics { liveRegion = LiveRegionMode.Polite }) {
+        Text(
+            text,
+            style = style.copy(fontSize = size),
+            maxLines = 1,
+            softWrap = false,
+            modifier = Modifier
+                .pointerInput(Unit) {
+                    detectTapGestures(onLongPress = {
+                        view.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+                        onCopy()
+                    })
+                }
+                // A result that still fits can't scroll: a drag towards its start asks for more digits
+                .then(
+                    if (scroll.maxValue == 0) Modifier.pointerInput(Unit) {
+                        var asked = false
+                        detectHorizontalDragGestures(onDragStart = { asked = false }) { change, drag ->
+                            if (drag < 0) {
+                                change.consume()
+                                // Once a drag: the line then scrolls and asks by itself
+                                if (!asked) more()
+                                asked = true
+                            }
+                        }
+                    } else Modifier,
+                ),
+        )
     }
 }
 
@@ -155,10 +241,10 @@ private fun FittedLine(text: AnnotatedString, style: TextStyle, sizes: List<Text
 }
 
 @Composable
-private fun LineBox(scroll: ScrollState, width: Int, modifier: Modifier, content: @Composable () -> Unit) {
+private fun LineBox(scroll: ScrollState, width: Int, modifier: Modifier, inner: Modifier = Modifier, content: @Composable () -> Unit) {
     val widthDp: Dp = with(LocalDensity.current) { width.toDp() }
     Box(modifier.fillMaxWidth().horizontalScroll(scroll)) {
-        Box(Modifier.widthIn(min = widthDp), contentAlignment = Alignment.CenterEnd) { content() }
+        Box(inner.widthIn(min = widthDp), contentAlignment = Alignment.CenterEnd) { content() }
     }
 }
 
@@ -167,8 +253,24 @@ private fun LineBox(scroll: ScrollState, width: Int, modifier: Modifier, content
  * typing at the end keeps the line scrolled to its end, elsewhere the cursor is kept in view.
  */
 @Composable
-private fun ExpressionLine(rendered: ExpressionText, cursor: Int, style: TextStyle, width: Int, onPlace: (Int) -> Unit) {
-    val text = AnnotatedString(rendered.text)
+private fun ExpressionLine(
+    rendered: ExpressionText,
+    cursor: Int,
+    ghosts: Int,
+    style: TextStyle,
+    width: Int,
+    onPlace: (Int) -> Unit,
+    onCopy: () -> Unit,
+    onPaste: () -> Unit,
+) {
+    // Unclosed brackets drawn closed in on-surface-variant: not text, not copied (SPEC §6.2)
+    val muted = MaterialTheme.colorScheme.onSurfaceVariant
+    val text = buildAnnotatedString {
+        append(rendered.text)
+        if (ghosts > 0) withStyle(SpanStyle(color = muted)) { append(")".repeat(ghosts)) }
+    }
+    val toolbar = LocalTextToolbar.current
+    var bounds by remember { mutableStateOf(Rect.Zero) }
     val size = fittedSize(text, style, MAIN_SIZES, width)
     val scroll = rememberScrollState()
     var layout by remember { mutableStateOf<TextLayoutResult?>(null) }
@@ -189,7 +291,44 @@ private fun ExpressionLine(rendered: ExpressionText, cursor: Int, style: TextSty
             else if (x > scroll.value + width - margin) scroll.scrollTo((x - width + margin).toInt())
         }
     }
-    LineBox(scroll, width, Modifier) {
+    // Taps and the long press work on the whole line, also when it is empty; positions are moved
+    // into the text, which sits at the end of the line
+    var lineSize by remember { mutableStateOf(androidx.compose.ui.unit.IntSize.Zero) }
+    fun inText(position: Offset, l: TextLayoutResult): Offset =
+        Offset(position.x - (lineSize.width - l.size.width), position.y - (lineSize.height - l.size.height) / 2f)
+    val hasText = rendered.text.isNotEmpty()
+    val lineInput = Modifier
+        .onGloballyPositioned {
+            // Not clipped to the visible part: the line may be scrolled
+            bounds = Rect(it.positionInRoot(), it.size.toSize())
+            lineSize = it.size
+        }
+        .pointerInput(rendered) {
+            detectTapGestures(
+                onTap = { position ->
+                    val l = layout ?: return@detectTapGestures
+                    onPlace(rendered.cursorAt(l.getOffsetForPosition(inText(position, l)).coerceAtMost(rendered.text.length)))
+                },
+                // The system's text toolbar: Copy (when there is something) and Paste (SPEC §6.2)
+                onLongPress = { position ->
+                    val x = bounds.left + position.x
+                    toolbar.showMenu(
+                        Rect(x, bounds.top, x + 1f, bounds.bottom),
+                        onCopyRequested = if (hasText) {
+                            {
+                                onCopy()
+                                toolbar.hide()
+                            }
+                        } else null,
+                        onPasteRequested = {
+                            onPaste()
+                            toolbar.hide()
+                        },
+                    )
+                },
+            )
+        }
+    LineBox(scroll, width, Modifier, inner = lineInput) {
         Text(
             text,
             style = style.copy(fontSize = size),
@@ -202,12 +341,6 @@ private fun ExpressionLine(rendered: ExpressionText, cursor: Int, style: TextSty
                     val l = layout ?: return@drawWithContent
                     val r = l.getCursorRect(offset.coerceIn(0, l.layoutInput.text.length))
                     drawRect(cursorColor, topLeft = Offset(r.left - cursorWidth / 2, r.top), size = Size(cursorWidth, r.height))
-                }
-                .pointerInput(rendered) {
-                    detectTapGestures { position ->
-                        val l = layout ?: return@detectTapGestures
-                        onPlace(rendered.cursorAt(l.getOffsetForPosition(position)))
-                    }
                 },
         )
     }

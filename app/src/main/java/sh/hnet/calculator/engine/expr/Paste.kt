@@ -51,6 +51,10 @@ object Paste {
                     out += Token.Sqrt
                     i += 4
                 }
+                lower.startsWith("root") -> {
+                    out += Token.Operator(Op.ROOT)
+                    i += 4
+                }
                 lower.startsWith("mod") -> {
                     out += Token.Operator(Op.MOD)
                     i += 3

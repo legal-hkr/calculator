@@ -16,7 +16,23 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.draggable
+import androidx.compose.foundation.gestures.rememberDraggableState
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
+import androidx.compose.material3.ToggleButton
+import androidx.compose.material3.ToggleButtonDefaults
+import androidx.compose.material3.ToggleButtonShapes
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.ui.Alignment
+import sh.hnet.calculator.engine.expr.Fn
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ButtonShapes
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -31,6 +47,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.LocalViewConfiguration
@@ -75,6 +92,7 @@ fun CalcKey(
     onLongClick: (() -> Unit)? = null,
     longClickLabel: String? = null,
     state: String? = null,
+    enabled: Boolean = true,
     content: @Composable () -> Unit,
 ) {
     val view = LocalView.current
@@ -118,7 +136,8 @@ fun CalcKey(
             }
         },
         shapes = shapes,
-        modifier = modifier.height(height).semantics {
+        // Typing on a keyboard never moves focus onto a key (SPEC §5.5); TalkBack still reaches them
+        modifier = modifier.height(height).focusProperties { canFocus = false }.semantics {
             contentDescription = description
             if (state != null) stateDescription = state
             if (onLongClick != null) onLongClick(label = longClickLabel) {
@@ -129,6 +148,7 @@ fun CalcKey(
         colors = ButtonDefaults.buttonColors(containerColor = container, contentColor = onContainer),
         contentPadding = PaddingValues(0.dp),
         interactionSource = interactions,
+        enabled = enabled,
     ) {
         Column(Modifier.clearAndSetSemantics { }) { content() }
     }
@@ -208,21 +228,120 @@ fun BasicKeypad(
     }
 }
 
-/** The scientific panel's always-visible row (SPEC §5.4): √ x² xʸ π x!. Its expand key comes with stage 2. */
+/** What the scientific panel's keys do beyond inserting one element. */
+class ScientificActions(
+    val onKey: (Key) -> Unit,
+    val onExp: () -> Unit,
+    val onPowerOfTen: () -> Unit,
+    val onAns: () -> Unit,
+    val onToggleSecond: () -> Unit,
+    val onPanel: (Boolean) -> Unit,
+)
+
+/**
+ * The scientific panel (SPEC §5.4): its bottom row always shows (√ x² xʸ π x! and the expand key);
+ * open, two rows appear above it (2nd sin cos tan ln log / e EE Ans mod 1/x |x|) and the display
+ * gives way, the keypad never moves. A vertical swipe on the panel opens (up) or closes (down) it.
+ * With 2nd on, sin cos tan ln log xʸ become sin⁻¹ cos⁻¹ tan⁻¹ eˣ 10ˣ ʸ√x.
+ */
 @Composable
-fun ScientificRow(vibrate: Boolean, onKey: (Key) -> Unit, modifier: Modifier = Modifier) {
+fun ScientificPanel(open: Boolean, second: Boolean, hasAns: Boolean, vibrate: Boolean, actions: ScientificActions, modifier: Modifier = Modifier) {
     val style = MaterialTheme.typography.titleMedium
-    Row(modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-        listOf(
-            Triple("√", R.string.content_description_square_root, Token.Sqrt),
-            Triple("x²", R.string.content_description_square, Token.Postfix(PostOp.SQUARE)),
-            Triple("xʸ", R.string.content_description_power, Token.Operator(Op.POWER)),
-            Triple("π", R.string.content_description_pi, Token.Constant(Const.PI)),
-            Triple("x!", R.string.content_description_factorial, Token.Postfix(PostOp.FACTORIAL)),
-        ).forEach { (label, description, token) ->
-            CalcKey(KeyGroup.FUNCTION, stringResource(description), vibrate, { onKey(Key.Insert(token)) }, Modifier.weight(1f), height = 48.dp) {
-                KeyText(label, style)
+    val motion = MaterialTheme.motionScheme
+    var dragged by remember { mutableFloatStateOf(0f) }
+    val dragState = rememberDraggableState { dragged += it }
+    Column(
+        modifier.fillMaxWidth().draggable(
+            dragState,
+            Orientation.Vertical,
+            onDragStarted = { dragged = 0f },
+            onDragStopped = { velocity ->
+                val up = dragged < 0 || velocity < 0
+                if (kotlin.math.abs(dragged) > 24f || kotlin.math.abs(velocity) > 300f) actions.onPanel(up)
+            },
+        ),
+    ) {
+        @Composable
+        fun RowScope.key(label: String, description: Int, onClick: () -> Unit, enabled: Boolean = true) {
+            CalcKey(KeyGroup.FUNCTION, stringResource(description), vibrate, onClick, Modifier.weight(1f), height = 48.dp, enabled = enabled) { KeyText(label, style) }
+        }
+
+        @Composable
+        fun RowScope.pair(plain: Pair<String, Int>, inverse: Pair<String, Int>, onPlain: () -> Unit, onInverse: () -> Unit) {
+            val description = if (second) inverse.second else plain.second
+            CalcKey(KeyGroup.FUNCTION, stringResource(description), vibrate, if (second) onInverse else onPlain, Modifier.weight(1f), height = 48.dp) {
+                Crossfade(second, animationSpec = motion.fastEffectsSpec(), label = "second") { inv ->
+                    KeyText(if (inv) inverse.first else plain.first, style)
+                }
             }
         }
+
+        fun insert(token: Token): () -> Unit = { actions.onKey(Key.Insert(token)) }
+
+        AnimatedVisibility(
+            open,
+            enter = expandVertically(motion.defaultSpatialSpec(), expandFrom = Alignment.Bottom) + fadeIn(motion.defaultEffectsSpec()),
+            exit = shrinkVertically(motion.defaultSpatialSpec(), shrinkTowards = Alignment.Bottom) + fadeOut(motion.fastEffectsSpec()),
+        ) {
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.padding(bottom = 6.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    SecondKey(second, vibrate, actions.onToggleSecond, Modifier.weight(1f))
+                    pair("sin" to R.string.content_description_sin, "sin⁻¹" to R.string.content_description_asin, insert(Token.Function(Fn.SIN)), insert(Token.Function(Fn.ASIN)))
+                    pair("cos" to R.string.content_description_cos, "cos⁻¹" to R.string.content_description_acos, insert(Token.Function(Fn.COS)), insert(Token.Function(Fn.ACOS)))
+                    pair("tan" to R.string.content_description_tan, "tan⁻¹" to R.string.content_description_atan, insert(Token.Function(Fn.TAN)), insert(Token.Function(Fn.ATAN)))
+                    pair("ln" to R.string.content_description_ln, "eˣ" to R.string.content_description_exp, insert(Token.Function(Fn.LN)), actions.onExp)
+                    pair("log" to R.string.content_description_log, "10ˣ" to R.string.content_description_exp10, insert(Token.Function(Fn.LOG)), actions.onPowerOfTen)
+                }
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    key("e", R.string.content_description_e, insert(Token.Constant(Const.E)))
+                    key("EE", R.string.content_description_ee, insert(Token.Exponent))
+                    key("Ans", R.string.content_description_ans, actions.onAns, enabled = hasAns)
+                    key("mod", R.string.content_description_mod, insert(Token.Operator(Op.MOD)))
+                    key("1/x", R.string.content_description_reciprocal, { actions.onKey(Key.Reciprocal) })
+                    key("|x|", R.string.content_description_abs, insert(Token.Function(Fn.ABS)))
+                }
+            }
+        }
+        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            key("√", R.string.content_description_square_root, insert(Token.Sqrt))
+            key("x²", R.string.content_description_square, insert(Token.Postfix(PostOp.SQUARE)))
+            pair("xʸ" to R.string.content_description_power, "ʸ√x" to R.string.content_description_root, insert(Token.Operator(Op.POWER)), insert(Token.Operator(Op.ROOT)))
+            key("π", R.string.content_description_pi, insert(Token.Constant(Const.PI)))
+            key("x!", R.string.content_description_factorial, insert(Token.Postfix(PostOp.FACTORIAL)))
+            CalcKey(
+                KeyGroup.FUNCTION,
+                stringResource(if (open) R.string.content_description_hide_scientific else R.string.content_description_show_scientific),
+                vibrate,
+                { actions.onPanel(!open) },
+                Modifier.weight(1f),
+                height = 48.dp,
+            ) { KeyIcon(if (open) R.drawable.ic_expand_more else R.drawable.ic_expand_less) }
+        }
+    }
+}
+
+/** 2nd: a toggle that stays on until tapped again; off a 12 dp square-ish key, on round in primary (SPEC §5.4). */
+@Composable
+private fun SecondKey(on: Boolean, vibrate: Boolean, onToggle: () -> Unit, modifier: Modifier) {
+    val view = LocalView.current
+    val scheme = MaterialTheme.colorScheme
+    val description = stringResource(R.string.content_description_second)
+    ToggleButton(
+        checked = on,
+        onCheckedChange = {
+            if (vibrate) view.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
+            onToggle()
+        },
+        shapes = ToggleButtonShapes(RoundedCornerShape(12.dp), RoundedCornerShape(8.dp), CircleShape),
+        colors = ToggleButtonDefaults.colors(
+            containerColor = scheme.surfaceContainer,
+            contentColor = scheme.onSurface,
+            checkedContainerColor = scheme.primary,
+            checkedContentColor = scheme.onPrimary,
+        ),
+        contentPadding = PaddingValues(0.dp),
+        modifier = modifier.height(48.dp).focusProperties { canFocus = false }.semantics { contentDescription = description },
+    ) {
+        Column(Modifier.clearAndSetSemantics { }) { KeyText("2nd", MaterialTheme.typography.titleMedium) }
     }
 }

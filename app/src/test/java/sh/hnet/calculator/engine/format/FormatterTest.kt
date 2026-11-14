@@ -98,6 +98,22 @@ class FormatterTest {
         assertTrue("took $ms ms", ms < 500)
     }
 
+    @Test fun asciiCopyPastesBack() {
+        for (text in listOf("sin(30)+√2π*1.5E-3-17 mod 5^2!%", "3ʸ√8", "asin(0.5)+abs(-2)²", "e^(2)")) {
+            val tokens = Paste.read(text, false)!!
+            for (style in listOf(en, pl)) {
+                val copied = ExpressionText.ascii(tokens, style)
+                assertTrue("not ASCII: $copied", copied.all { it.code < 128 })
+                // ² comes back as ^2: the same value
+                val original = sh.hnet.calculator.engine.expr.Parser.evaluate(tokens) as sh.hnet.calculator.engine.expr.Evaluation.Value
+                val pasted = sh.hnet.calculator.engine.expr.Parser.evaluate(Paste.read(copied, style.decimalComma)!!) as sh.hnet.calculator.engine.expr.Evaluation.Value
+                assertEquals("$text via $copied", original.value.decimal(40), pasted.value.decimal(40))
+            }
+        }
+        val withValue = listOf(sh.hnet.calculator.engine.expr.Token.Operator(sh.hnet.calculator.engine.expr.Op.MINUS).let { listOf(sh.hnet.calculator.engine.expr.Token.Digit(5), it) }, listOf(sh.hnet.calculator.engine.expr.Token.Value(q("-2.5")))).flatten()
+        assertEquals("5-(-2.5)", ExpressionText.ascii(withValue, en))
+    }
+
     @Test fun superscript() {
         assertEquals("⁻⁷", Formatter.superscript(-7))
         assertEquals("¹⁰⁰", Formatter.superscript(100))

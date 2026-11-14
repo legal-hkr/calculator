@@ -23,6 +23,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -54,6 +55,8 @@ fun CalculatorApp() {
     val context = LocalContext.current
     val stack = rememberNavBackStack(Screen.Calculator)
     val snackbars = remember { SnackbarHostState() }
+    // Outlives the page a message comes from
+    val scope = rememberCoroutineScope()
 
     // After an update, once: "Updated to x.y.z" with What's new (as ComfyChair, Music, Clock and News)
     val updatedTo = stringResource(R.string.whats_new_updated_snackbar)
@@ -97,7 +100,7 @@ fun CalculatorApp() {
                         (slideOutHorizontally(spatial) { shift } + fadeOut(fastEffects))
                 },
                 entryProvider = entryProvider<NavKey> {
-                    entry<Screen.Calculator> { CalculatorScreen(onOpenSettings = { open(Screen.Settings) }) }
+                    entry<Screen.Calculator> { CalculatorScreen(onOpenSettings = { open(Screen.Settings) }, snackbars = snackbars, messageScope = scope) }
                     entry<Screen.Settings> {
                         SettingsRootScreen(
                             onBack = back,
