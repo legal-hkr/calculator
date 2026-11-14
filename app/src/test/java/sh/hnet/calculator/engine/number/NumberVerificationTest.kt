@@ -3,6 +3,7 @@ package sh.hnet.calculator.engine.number
 import org.junit.Assert.assertTrue
 import org.junit.Assume.assumeTrue
 import org.junit.Test
+import sh.hnet.calculator.engine.format.Formatter
 import java.io.File
 import java.math.BigInteger
 
@@ -56,6 +57,7 @@ class NumberVerificationTest {
         val tolerance = shift + BigInteger.ONE
         val failures = mutableListOf<String>()
         var count = 0
+        var truncations = 0
         val started = System.nanoTime()
         val slow = mutableListOf<Pair<Long, String>>()
         File(path!!).forEachLine { line ->
@@ -66,8 +68,16 @@ class NumberVerificationTest {
             val t0 = System.nanoTime()
             try {
                 val value = compute(op, q(xs), ys.takeIf { it.isNotEmpty() }?.let { q(it) })
-                val diff = (value.approx(p) * shift - BigInteger(truthText)).abs()
+                val truth = BigInteger(truthText)
+                val diff = (value.approx(p) * shift - truth).abs()
                 if (diff > tolerance) failures += "$op($xs, $ys) at $p: off by ${diff.divide(shift)} units"
+                // The digits the display shows: cut at p places (unless the truth itself sits within a hair of a cut)
+                val rest = truth.abs().mod(shift)
+                if (rest.signum() != 0 && rest != shift - BigInteger.ONE) {
+                    truncations++
+                    val shown = Formatter.truncated(Calc.abs(value), p).first
+                    if (shown != truth.abs().divide(shift)) failures += "$op($xs, $ys) at $p: digits cut wrong"
+                }
             } catch (e: Exception) {
                 failures += "$op($xs, $ys) at $p: $e"
             }
@@ -75,7 +85,7 @@ class NumberVerificationTest {
             slow += ms to "$op($xs, $ys) at $p"
         }
         val total = (System.nanoTime() - started) / 1_000_000
-        println("Verified $count cases in $total ms, ${failures.size} failed")
+        println("Verified $count cases ($truncations cut for display) in $total ms, ${failures.size} failed")
         slow.sortedByDescending { it.first }.take(10).forEach { println("slow: ${it.first} ms ${it.second}") }
         failures.take(40).forEach { println("FAIL $it") }
         assertTrue("${failures.size} of $count cases failed; first: ${failures.take(5)}", failures.isEmpty())

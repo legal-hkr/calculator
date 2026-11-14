@@ -25,9 +25,12 @@ object Calc {
 
     // Constants
 
-    val pi: Real = Real.computed { p -> Series.pi(p + 2).let { scaledOf(it, p) } }
+    // Computed recipes may be asked for negative places (a few digits of a huge number): each keeps
+    // its working precision at a sensible minimum
 
-    val e: Real = Real.computed { p -> scaledOf(Series.exp(BigDecimal.ONE, p + 5), p) }
+    val pi: Real = Real.computed { p -> Series.pi(max(p + 2, 2)).let { scaledOf(it, p) } }
+
+    val e: Real = Real.computed { p -> scaledOf(Series.exp(BigDecimal.ONE, max(p + 5, 5)), p) }
 
     private val ln10: Real by lazy { ln(Real.of(10)) }
 
@@ -48,8 +51,11 @@ object Calc {
             }
             return x
         }
-        val m = x.approx(0).abs()
-        if (m.bitLength() > 33_000 && m >= LIMIT) throw CalcException(CalcError.OVERFLOW)
+        // Only a number that may be near the edge costs more than the cheap upper bound
+        if (x.upperExponent() > RANGE_DIGITS) {
+            val m = x.approx(-(RANGE_DIGITS - 20)).abs()
+            if (m >= TEN.pow(20)) throw CalcException(CalcError.OVERFLOW)
+        }
         return x
     }
 
@@ -225,7 +231,7 @@ object Calc {
         return Real.computed { p ->
             // The result moves by e^x · dx: x to p + digits + 2 places
             val xd = x.decimal(p + digits + 2)
-            scaledOf(Series.exp(xd, p + digits + 5), p)
+            scaledOf(Series.exp(xd, max(p + digits + 5, 10)), p)
         }
     }
 
@@ -241,8 +247,9 @@ object Calc {
         val e = x.magnitude()!!
         return Real.computed { p ->
             // d ln x = dx / x and x ≥ 10^(e−2)
-            val xd = x.decimal(max(0, p + 5 - e))
-            scaledOf(Series.ln(xd, p + 3), p)
+            // Never fewer places than keep x within half of itself (ln 10^−50 asked for few digits)
+            val xd = x.decimal(max(p + 5 - e, 3 - e))
+            scaledOf(Series.ln(xd, max(p + 3, 5)), p)
         }
     }
 
@@ -375,7 +382,7 @@ object Calc {
      * then the series for sin or cos of r by the quadrant.
      */
     private fun sinRadians(x: Real, quarter: Int): Real = Real.computed { p ->
-        val work = p + 8
+        val work = max(p + 8, 8)
         val xd = x.decimal(work)
         // π/2 to enough places that k · π/2 stays accurate
         val intDigits = Real.digitCount(xd.abs().toBigInteger() + BigInteger.ONE)
@@ -444,6 +451,7 @@ object Calc {
 
     private fun atanRadians(x: Real): Real = Real.computed { p ->
         // The derivative is at most 1
-        scaledOf(Series.atan(x.decimal(p + 5), p + 3), p)
+        val work = max(p, 2)
+        scaledOf(Series.atan(x.decimal(work + 5), work + 3), p)
     }
 }
