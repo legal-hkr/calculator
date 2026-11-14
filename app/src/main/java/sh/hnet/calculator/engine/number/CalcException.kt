@@ -7,6 +7,8 @@ enum class CalcError {
     DOMAIN,
     /** Beyond the range of 10^±10000. */
     OVERFLOW,
+    /** An expression that can't be read (5 × ÷ 3 pasted, a parenthesis closed that was never opened). */
+    SYNTAX,
 }
 
 class CalcException(val error: CalcError) : RuntimeException(error.name)
