@@ -57,20 +57,12 @@ import sh.hnet.calculator.engine.format.NumberStyle
 import sh.hnet.calculator.ui.components.TooltipIconButton
 
 /**
- * The Calculator mode (SPEC §5, §6): top bar with the mode's name, History and Settings (the mode
- * menu joins with stage 4), the display, the scientific panel and the basic keypad. A
- * physical keyboard types too (§5.5).
+ * The Calculator mode (SPEC §5, §6) under the main screen's top bar: the display, the scientific
+ * panel and the basic keypad. A physical keyboard types too (§5.5).
  */
 @Composable
-fun CalculatorScreen(onOpenSettings: () -> Unit, onOpenHistory: () -> Unit, snackbars: SnackbarHostState, messageScope: CoroutineScope) {
+fun CalculatorContent(style: NumberStyle, vibrate: Boolean, snackbars: SnackbarHostState, messageScope: CoroutineScope) {
     val vm: CalculatorViewModel = viewModel()
-    val app = LocalContext.current.applicationContext as CalculatorApplication
-    val settings by app.preferences.calcSettings.collectAsState(CalcSettings())
-    // Numbers follow the app's language, not the region (SPEC §2.9)
-    val decimalComma = LocalConfiguration.current.locales[0].language == "pl"
-    val style = remember(decimalComma, settings) {
-        NumberStyle(decimalComma = decimalComma, grouping = settings.grouping, decimals = settings.decimals, notation = settings.notation)
-    }
     LifecycleEventEffect(Lifecycle.Event.ON_STOP) { vm.saveNow() }
 
     val clipboard = LocalClipboard.current
@@ -103,20 +95,13 @@ fun CalculatorScreen(onOpenSettings: () -> Unit, onOpenHistory: () -> Unit, snac
             .focusable()
             .onPreviewKeyEvent { event -> typed(event, vm, onCopy = { copy(if (vm.showsResult) vm.resultForCopy() else vm.expressionForCopy()) }, onPaste = { paste() }) },
     ) {
-        TopAppBar(
-            title = { Text(stringResource(R.string.title_mode_calculator), maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.semantics { heading() }) },
-            actions = {
-                TooltipIconButton(R.drawable.ic_history, stringResource(R.string.tooltip_history), onOpenHistory)
-                TooltipIconButton(R.drawable.ic_settings, stringResource(R.string.tooltip_settings), onOpenSettings)
-            },
-        )
         Display(vm, style, displayClipboard, Modifier.weight(1f))
         Spacer(Modifier.height(8.dp))
         ScientificPanel(
             open = vm.panelOpen,
             second = vm.second,
             hasAns = vm.hasAns,
-            vibrate = settings.vibrate,
+            vibrate = vibrate,
             actions = remember(vm) { ScientificActions(vm::press, vm::insertExp, vm::insertPowerOfTen, vm::insertAns, vm::toggleSecond, vm::setPanel) },
             modifier = Modifier.padding(horizontal = 12.dp),
         )
@@ -124,7 +109,7 @@ fun CalculatorScreen(onOpenSettings: () -> Unit, onOpenHistory: () -> Unit, snac
         BasicKeypad(
             decimalSeparator = style.decimalSeparator,
             showsResult = vm.showsResult,
-            vibrate = settings.vibrate,
+            vibrate = vibrate,
             onKey = vm::press,
             onEquals = vm::equals,
             onClear = vm::clear,

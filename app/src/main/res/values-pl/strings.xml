@@ -64,6 +64,28 @@
     <string name="label_switch_to_degrees">Przełącz na stopnie</string>
     <string name="error_paste">W schowku nie ma liczby ani wyrażenia.</string>
 
+    <!-- Programmer -->
+    <string name="title_mode_programmer">Programista</string>
+    <string name="content_description_mode">Tryb: %1$s</string>
+    <string name="label_signed">Ze znakiem</string>
+    <string name="label_unsigned">Bez znaku</string>
+    <string name="label_overflow_wrapped">Przepełnienie – wynik zawinięty</string>
+    <string name="title_bits">Bity</string>
+    <string name="content_description_bit">Bit %1$d</string>
+    <string name="desc_not_decimal_digit">To nie jest cyfra dziesiętna</string>
+    <string name="desc_not_octal_digit">To nie jest cyfra ósemkowa</string>
+    <string name="desc_not_binary_digit">To nie jest cyfra dwójkowa</string>
+    <string name="content_description_shift_left">Przesunięcie w lewo</string>
+    <string name="content_description_shift_right">Przesunięcie w prawo</string>
+    <string name="content_description_rotate_left">Obrót w lewo</string>
+    <string name="content_description_rotate_right">Obrót w prawo</string>
+    <plurals name="label_word_size">
+        <item quantity="one">%d bit</item>
+        <item quantity="few">%d bity</item>
+        <item quantity="many">%d bitów</item>
+        <item quantity="other">%d bitu</item>
+    </plurals>
+
     <!-- History -->
     <string name="tooltip_history">Historia</string>
     <string name="title_history">Historia</string>

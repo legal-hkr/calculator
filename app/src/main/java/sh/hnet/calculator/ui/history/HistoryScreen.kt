@@ -68,6 +68,13 @@ import sh.hnet.calculator.engine.format.ExpressionText
 import sh.hnet.calculator.engine.format.Formatter
 import sh.hnet.calculator.engine.format.NumberStyle
 import sh.hnet.calculator.engine.number.Real
+import sh.hnet.calculator.engine.programmer.Base
+import sh.hnet.calculator.engine.programmer.Programmer
+import sh.hnet.calculator.engine.programmer.Word
+import sh.hnet.calculator.ui.programmer.groupsOf
+import sh.hnet.calculator.ui.programmer.programmerValueText
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.ui.res.pluralStringResource
 import sh.hnet.calculator.ui.components.EmptyState
 import sh.hnet.calculator.ui.components.MenuItem
 import sh.hnet.calculator.ui.components.SwipeToRemove
@@ -78,7 +85,15 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 /** An entry decoded for the list: its parts as the display writes them. */
-private class Shown(val entry: HistoryEntry, val tokens: List<Token>, val value: Real, val day: LocalDate)
+private class Shown(val entry: HistoryEntry, val tokens: List<Token>, val value: Real, val day: LocalDate) {
+    /** A Programmer entry's value, base and word, else null. */
+    val programmer: Triple<java.math.BigInteger, Base, Word>? =
+        entry.base?.let { name ->
+            val base = Base.entries.firstOrNull { it.name == name } ?: return@let null
+            val n = value.rational?.takeIf { it.isInteger }?.num ?: return@let null
+            Triple(n, base, Word(entry.bits ?: 64, entry.signed ?: true))
+        }
+}
 
 /**
  * A mode's History (SPEC §10), a page of the family opened by its top-bar icon: oldest to newest, opened at the end, in day groups as News's list.
@@ -90,7 +105,7 @@ fun HistoryScreen(
     mode: HistoryMode,
     onBack: () -> Unit,
     onInsertResult: (Real) -> Unit,
-    onInsertExpression: (List<Token>) -> Unit,
+    onInsertExpression: (List<Token>, String?) -> Unit,
     snackbars: SnackbarHostState,
     messageScope: CoroutineScope,
 ) {
@@ -130,17 +145,21 @@ fun HistoryScreen(
 
     Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surface) {
         Column(Modifier.fillMaxSize()) {
-            TopAppBar(
-                navigationIcon = { TooltipIconButton(R.drawable.ic_arrow_back, stringResource(R.string.content_description_back), onBack) },
-                title = { Text(stringResource(R.string.title_history), modifier = Modifier.semantics { heading() }) },
-                actions = {
-                    if (!shown.isNullOrEmpty()) {
-                        TooltipIconButton(R.drawable.ic_delete_sweep, stringResource(R.string.tooltip_clear_history), {
-                            messageScope.launch { offerUndo(cleared, app.history.clear(mode)) }
-                        })
-                    }
-                },
-            )
+            val navigation: @Composable () -> Unit = { TooltipIconButton(R.drawable.ic_arrow_back, stringResource(R.string.content_description_back), onBack) }
+            val title: @Composable () -> Unit = { Text(stringResource(R.string.title_history), modifier = Modifier.semantics { heading() }) }
+            val actions: @Composable androidx.compose.foundation.layout.RowScope.() -> Unit = {
+                if (!shown.isNullOrEmpty()) {
+                    TooltipIconButton(R.drawable.ic_delete_sweep, stringResource(R.string.tooltip_clear_history), {
+                        messageScope.launch { offerUndo(cleared, app.history.clear(mode)) }
+                    })
+                }
+            }
+            // The Programmer's list says whose it is (SPEC §10.3)
+            if (mode == HistoryMode.PROGRAMMER) {
+                TopAppBar(title = title, subtitle = { Text(stringResource(R.string.title_mode_programmer)) }, navigationIcon = navigation, actions = actions)
+            } else {
+                TopAppBar(title = title, navigationIcon = navigation, actions = actions)
+            }
             val list = shown ?: return@Column
             if (list.isEmpty()) {
                 // The app's mark is drawn on the launcher icon's canvas, hence the larger size
@@ -188,10 +207,13 @@ fun HistoryScreen(
                                         onBack()
                                     },
                                     onInsertExpression = {
-                                        onInsertExpression(item.tokens)
+                                        onInsertExpression(item.tokens, item.entry.base)
                                         onBack()
                                     },
-                                    onCopyResult = { copy(Formatter.format(item.value, style, COPY_WIDTH).copy) },
+                                    onCopyResult = {
+                                        val p = item.programmer
+                                        copy(if (p != null) Programmer.copy(p.first, p.second, p.third) else Formatter.format(item.value, style, COPY_WIDTH).copy)
+                                    },
                                     onCopyExpression = { copy(ExpressionText.ascii(item.tokens, style)) },
                                     onDelete = { remove(item.entry) },
                                 )
@@ -220,12 +242,29 @@ private fun EntryRow(
 ) {
     var menu by remember { mutableStateOf(false) }
     val muted = MaterialTheme.colorScheme.onSurfaceVariant
-    val expression = remember(item, style) { ExpressionText.render(item.tokens, style).text }
-    val formatted = remember(item, style) { Formatter.format(item.value, style, ROW_WIDTH) }
-    val result: AnnotatedString = buildAnnotatedString {
-        append(formatted.text)
-        if (!formatted.exact) withStyle(SpanStyle(color = muted)) { append('…') }
-        formatted.exponent?.let { append(" × 10" + Formatter.superscript(it)) }
+    val p = item.programmer
+    val expression = remember(item, style) {
+        if (p != null) ExpressionText.render(item.tokens, style, programmerValueText(p.second, p.third, style), groupsOf(p.second)).text
+        else ExpressionText.render(item.tokens, style).text
+    }
+    val result: AnnotatedString = if (p != null) {
+        AnnotatedString(Programmer.text(p.first, p.second, p.third, style))
+    } else {
+        val formatted = remember(item, style) { Formatter.format(item.value, style, ROW_WIDTH) }
+        buildAnnotatedString {
+            append(formatted.text)
+            if (!formatted.exact) withStyle(SpanStyle(color = muted)) { append('…') }
+            formatted.exponent?.let { append(" × 10" + Formatter.superscript(it)) }
+        }
+    }
+    // "HEX, 8 bits, unsigned" (SPEC §10.3)
+    val tag = p?.let {
+        stringResource(
+            R.string.label_history_tag,
+            it.second.name,
+            pluralStringResource(R.plurals.label_word_size, it.third.bits, it.third.bits),
+            stringResource(if (it.third.signed) R.string.label_signed else R.string.label_unsigned).lowercase(),
+        )
     }
     val pressed = MaterialTheme.colorScheme.surfaceContainerHighest
     Box {
@@ -234,9 +273,10 @@ private fun EntryRow(
             onLongClick = { menu = true },
             shapes = ListItemDefaults.segmentedShapes(0, 1).copy(shape = shape),
             colors = if (menu) ListItemDefaults.segmentedColors(containerColor = pressed) else ListItemDefaults.segmentedColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
-            modifier = Modifier.fillMaxWidth().height(72.dp).semantics { contentDescription = "$expression = ${result.text}" },
+            modifier = Modifier.fillMaxWidth().heightIn(min = 72.dp).semantics { contentDescription = "$expression = ${result.text}" },
         ) {
             Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.End) {
+                if (tag != null) Text(tag, style = MaterialTheme.typography.labelMedium, color = muted, maxLines = 1)
                 // Long lines are cut at their start, so their end stays in view (SPEC §10.3)
                 Text(expression, style = MaterialTheme.typography.bodyMedium, color = muted, maxLines = 1, overflow = TextOverflow.StartEllipsis)
                 Text(result, style = MaterialTheme.typography.titleLarge, maxLines = 1, overflow = TextOverflow.StartEllipsis)

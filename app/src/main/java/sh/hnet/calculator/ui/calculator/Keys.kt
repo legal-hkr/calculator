@@ -155,10 +155,10 @@ fun CalcKey(
 }
 
 @Composable
-private fun KeyText(text: String, style: TextStyle) = Text(text, style = style.tabular, maxLines = 1)
+internal fun KeyText(text: String, style: TextStyle) = Text(text, style = style.tabular, maxLines = 1)
 
 @Composable
-private fun KeyIcon(@DrawableRes icon: Int, color: Color = Color.Unspecified) =
+internal fun KeyIcon(@DrawableRes icon: Int, color: Color = Color.Unspecified) =
     Icon(painterResource(icon), contentDescription = null, modifier = Modifier.size(28.dp), tint = if (color == Color.Unspecified) androidx.compose.material3.LocalContentColor.current else color)
 
 /**

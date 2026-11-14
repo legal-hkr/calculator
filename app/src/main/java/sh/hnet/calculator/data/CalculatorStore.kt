@@ -6,13 +6,18 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import sh.hnet.calculator.engine.expr.Expression
 import sh.hnet.calculator.engine.expr.TokenCodec
 import sh.hnet.calculator.engine.number.AngleUnit
 import sh.hnet.calculator.engine.number.Real
 
 private val Context.calculatorState by preferencesDataStore("calculator")
+
+/** The app's modes (SPEC §4.1); the Converter joins with stage 5. */
+enum class AppMode { CALCULATOR, PROGRAMMER }
 
 /**
  * The calculator's state between runs (SPEC §4.1): the expression with its cursor, whether a
@@ -39,6 +44,17 @@ class CalculatorStore(private val context: Context) {
     private val angle = stringPreferencesKey("angle")
     private val panelOpen = booleanPreferencesKey("panel_open")
     private val second = booleanPreferencesKey("second")
+
+    private val mode = stringPreferencesKey("mode")
+
+    /** The mode used last: the app opens on it (SPEC §3). A memory: not in backups, Reset leaves it. */
+    val lastMode: Flow<AppMode> = context.calculatorState.data.map { p ->
+        p[mode]?.let { name -> AppMode.entries.firstOrNull { it.name == name } } ?: AppMode.CALCULATOR
+    }
+
+    suspend fun saveMode(m: AppMode) {
+        context.calculatorState.edit { it[mode] = m.name }
+    }
 
     suspend fun load(): State {
         val p = context.calculatorState.data.first()

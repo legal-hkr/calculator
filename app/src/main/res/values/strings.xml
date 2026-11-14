@@ -67,6 +67,28 @@
     <string name="label_switch_to_degrees">Switch to degrees</string>
     <string name="error_paste">The clipboard doesn’t contain a number or an expression.</string>
 
+    <!-- Programmer -->
+    <string name="title_mode_programmer">Programmer</string>
+    <string name="content_description_mode">Mode: %1$s</string>
+    <string name="label_signed">Signed</string>
+    <string name="label_unsigned">Unsigned</string>
+    <string name="label_overflow_wrapped">Overflow – result wrapped</string>
+    <string name="title_bits">Bits</string>
+    <string name="content_description_bit">Bit %1$d</string>
+    <string name="label_value_in_base" translatable="false">%1$s: %2$s</string>
+    <string name="desc_not_decimal_digit">Not a decimal digit</string>
+    <string name="desc_not_octal_digit">Not an octal digit</string>
+    <string name="desc_not_binary_digit">Not a binary digit</string>
+    <string name="content_description_shift_left">Shift left</string>
+    <string name="content_description_shift_right">Shift right</string>
+    <string name="content_description_rotate_left">Rotate left</string>
+    <string name="content_description_rotate_right">Rotate right</string>
+    <string name="label_history_tag" translatable="false">%1$s, %2$s, %3$s</string>
+    <plurals name="label_word_size">
+        <item quantity="one">%d bit</item>
+        <item quantity="other">%d bits</item>
+    </plurals>
+
     <!-- History -->
     <string name="tooltip_history">History</string>
     <string name="title_history">History</string>

@@ -9,6 +9,7 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.lifecycle.viewmodel.compose.viewModel
 import sh.hnet.calculator.data.HistoryMode
 import sh.hnet.calculator.ui.calculator.CalculatorViewModel
+import sh.hnet.calculator.ui.programmer.ProgrammerViewModel
 import sh.hnet.calculator.ui.history.HistoryScreen
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
@@ -41,7 +42,6 @@ import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
 import sh.hnet.calculator.R
 import sh.hnet.calculator.about.WhatsNew
-import sh.hnet.calculator.ui.calculator.CalculatorScreen
 import sh.hnet.calculator.ui.settings.AboutScreen
 import sh.hnet.calculator.ui.settings.AppLicenseScreen
 import sh.hnet.calculator.ui.settings.LanguageScreen
@@ -105,20 +105,22 @@ fun CalculatorApp() {
                 },
                 entryProvider = entryProvider<NavKey> {
                     entry<Screen.Calculator> {
-                        CalculatorScreen(
+                        MainScreen(
                             onOpenSettings = { open(Screen.Settings) },
-                            onOpenHistory = { open(Screen.History(HistoryMode.CALCULATOR)) },
+                            onOpenHistory = { open(Screen.History(it)) },
                             snackbars = snackbars,
                             messageScope = scope,
                         )
                     }
                     entry<Screen.History> { key ->
                         val calculator: CalculatorViewModel = viewModel()
+                        val programmer: ProgrammerViewModel = viewModel()
+                        val forProgrammer = key.mode == HistoryMode.PROGRAMMER
                         HistoryScreen(
                             mode = key.mode,
                             onBack = back,
-                            onInsertResult = calculator::insertValue,
-                            onInsertExpression = calculator::replaceExpression,
+                            onInsertResult = { if (forProgrammer) programmer.insertValue(it) else calculator.insertValue(it) },
+                            onInsertExpression = { tokens, base -> if (forProgrammer) programmer.replaceExpression(tokens, base) else calculator.replaceExpression(tokens) },
                             snackbars = snackbars,
                             messageScope = scope,
                         )

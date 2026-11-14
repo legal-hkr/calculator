@@ -69,7 +69,7 @@ private val TextStyle.tabular: TextStyle get() = copy(fontFeatureSettings = "tnu
 private val MAIN_SIZES = listOf(45.sp, 36.sp, 28.sp)
 
 /** Preview and small line: 24 → 20 sp. */
-private val SMALL_SIZES = listOf(24.sp, 20.sp)
+internal val SMALL_SIZES = listOf(24.sp, 20.sp)
 
 /** A result as shown: digits, the mark of a value that continues, and the power of ten (SPEC §6.6). */
 @Composable
@@ -209,7 +209,7 @@ private fun ResultLine(text: AnnotatedString, style: TextStyle, width: Int, onMo
     }
 }
 
-private val DisplayError.message: Int
+internal val DisplayError.message: Int
     get() = when (this) {
         DisplayError.DIVISION_BY_ZERO -> R.string.error_divide_by_zero
         DisplayError.DOMAIN -> R.string.error_domain
@@ -231,7 +231,7 @@ private fun fittedSize(text: AnnotatedString, style: TextStyle, sizes: List<Text
 
 /** One line, end-aligned, shrunk in steps, then scrolled sideways (never wrapped); kept scrolled to its end. */
 @Composable
-private fun FittedLine(text: AnnotatedString, style: TextStyle, sizes: List<TextUnit>, width: Int, modifier: Modifier = Modifier) {
+internal fun FittedLine(text: AnnotatedString, style: TextStyle, sizes: List<TextUnit>, width: Int, modifier: Modifier = Modifier) {
     val size = fittedSize(text, style, sizes, width)
     val scroll = rememberScrollState()
     LaunchedEffect(text) { snapshotFlow { scroll.maxValue }.collect { scroll.scrollTo(it) } }
@@ -253,7 +253,7 @@ private fun LineBox(scroll: ScrollState, width: Int, modifier: Modifier, inner: 
  * typing at the end keeps the line scrolled to its end, elsewhere the cursor is kept in view.
  */
 @Composable
-private fun ExpressionLine(
+internal fun ExpressionLine(
     rendered: ExpressionText,
     cursor: Int,
     ghosts: Int,
@@ -261,7 +261,8 @@ private fun ExpressionLine(
     width: Int,
     onPlace: (Int) -> Unit,
     onCopy: () -> Unit,
-    onPaste: () -> Unit,
+    onPaste: (() -> Unit)?,
+    sizes: List<TextUnit> = MAIN_SIZES,
 ) {
     // Unclosed brackets drawn closed in on-surface-variant: not text, not copied (SPEC §6.2)
     val muted = MaterialTheme.colorScheme.onSurfaceVariant
@@ -271,7 +272,7 @@ private fun ExpressionLine(
     }
     val toolbar = LocalTextToolbar.current
     var bounds by remember { mutableStateOf(Rect.Zero) }
-    val size = fittedSize(text, style, MAIN_SIZES, width)
+    val size = fittedSize(text, style, sizes, width)
     val scroll = rememberScrollState()
     var layout by remember { mutableStateOf<TextLayoutResult?>(null) }
     val cursorColor = MaterialTheme.colorScheme.primary
@@ -320,9 +321,11 @@ private fun ExpressionLine(
                                 toolbar.hide()
                             }
                         } else null,
-                        onPasteRequested = {
-                            onPaste()
-                            toolbar.hide()
+                        onPasteRequested = onPaste?.let { paste ->
+                            {
+                                paste()
+                                toolbar.hide()
+                            }
                         },
                     )
                 },
