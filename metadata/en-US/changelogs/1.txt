@@ -1,4 +1,9 @@
 v0.1.0
 
-In development:
-- The app’s frame and the first settings pages
+First version:
+- Calculator with exact decimal arithmetic and a live preview of the result
+- Scientific functions in degrees or radians, results to 1,000 digits
+- Programmer mode: HEX, DEC, OCT and BIN, words of 8 to 64 bits, bit operations
+- Unit converter: 14 categories, unit search in English and Polish
+- History for Calculator and Programmer modes, or none at all
+- Backup and restore of settings and history

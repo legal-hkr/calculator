@@ -1,0 +1,26 @@
+Calculator is a private calculator for Android that calculates exactly: 0.1 + 0.2 is 0.3, and 1 ÷ 3 × 3 is 1. It has no access to the Internet, asks for no permission at all and stores nothing outside the phone: no account, no ads, no analytics.
+
+Calculator:
+- The whole expression on one line, with a cursor, and its result previewed as you type
+- Exact decimal arithmetic; irrational results computed to as many digits as you scroll to, up to 1,000
+- A result with more digits ends with an ellipsis; a finite one is shown in full
+- Mathematical notation: 1 ÷ 2π is 1/(2π), and 200 + 10% is 220
+- Scientific functions in degrees or radians: trigonometric functions and their inverses, logarithms, powers, roots, factorial
+- The last result carries over to the next operation; copy and paste use plain text
+
+Programmer:
+- HEX, DEC, OCT and BIN at once, words of 8, 16, 32 or 64 bits, signed or unsigned
+- AND, OR, XOR, NOT, NAND, NOR, shifts and rotations; overflow wraps, with a note
+- A sheet of bits to toggle one by one
+
+Converter:
+- 14 categories, from length and mass to data, fuel consumption and frequency
+- Exact factors from the units’ definitions; US and imperial units listed separately
+- Unit search by name or symbol in English and Polish, or all units of a category in one list
+
+And also:
+- History for Calculator and Programmer modes, with day groups, reuse, copy and delete; or no history at all, with nothing kept after the app closes
+- Decimal places, scientific notation, the thousands separator and key vibration
+- Backup and restore of settings and history to a file you choose
+- English and Polish, independent of the system language
+- Material 3 Expressive design with your phone’s colors

@@ -1,0 +1,9 @@
+v0.1.0
+
+Pierwsza wersja:
+- Kalkulator z dokładną arytmetyką dziesiętną i podglądem wyniku na żywo
+- Funkcje naukowe w stopniach albo radianach, wyniki do 1000 cyfr
+- Tryb programisty: HEX, DEC, OCT i BIN, słowa od 8 do 64 bitów, działania bitowe
+- Przelicznik jednostek: 14 kategorii, wyszukiwanie jednostek po polsku i angielsku
+- Historia w trybach Kalkulator i Programista, którą można wyłączyć
+- Kopia zapasowa ustawień i historii

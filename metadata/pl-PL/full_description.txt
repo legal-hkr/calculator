@@ -1,0 +1,26 @@
+Kalkulator to prywatny kalkulator na Androida, który liczy dokładnie: 0,1 + 0,2 daje 0,3, a 1 ÷ 3 × 3 daje 1. Nie ma dostępu do Internetu, nie prosi o żadne uprawnienia i nic nie wysyła poza telefon: bez konta, bez reklam, bez analityki.
+
+Kalkulator:
+- Całe wyrażenie w jednym wierszu, z kursorem, i wynik widoczny już w trakcie wpisywania
+- Dokładna arytmetyka dziesiętna; wyniki niewymierne obliczane na bieżąco podczas przewijania, do 1000 cyfr
+- Wynik, który ma dalsze cyfry, kończy się wielokropkiem; wynik skończony jest wyświetlany w całości
+- Zapis matematyczny: 1 ÷ 2π to 1/(2π), a 200 + 10% to 220
+- Funkcje naukowe w stopniach albo radianach: trygonometria i funkcje odwrotne, logarytmy, potęgi, pierwiastki, silnia
+- Ostatni wynik przechodzi do następnego działania, a kopiowanie i wklejanie używają zwykłego tekstu
+
+Programista:
+- HEX, DEC, OCT i BIN jednocześnie, słowa 8-, 16-, 32- lub 64-bitowe, ze znakiem lub bez
+- AND, OR, XOR, NOT, NAND, NOR, przesunięcia i obroty; przy przepełnieniu wynik jest zawijany, z odpowiednią informacją
+- Arkusz bitów do przełączania pojedynczo
+
+Przelicznik:
+- 14 kategorii, od długości i masy po dane, zużycie paliwa i częstotliwość
+- Dokładne przeliczniki z definicji jednostek; jednostki amerykańskie i brytyjskie rozróżnione
+- Wyszukiwanie jednostek po nazwie i symbolu, po polsku i angielsku, albo lista wszystkich jednostek kategorii
+
+A także:
+- Historia trybów Kalkulator i Programista, pogrupowana według dni, z ponownym użyciem, kopiowaniem i usuwaniem; albo bez historii, wtedy po zamknięciu aplikacji nic nie jest zachowywane
+- Miejsca po przecinku, notacja naukowa, separator tysięcy i wibracja klawiszy
+- Kopia zapasowa ustawień i historii w wybranym pliku
+- Język polski lub angielski, niezależnie od języka systemu
+- Wygląd Material 3 Expressive w kolorach systemu
