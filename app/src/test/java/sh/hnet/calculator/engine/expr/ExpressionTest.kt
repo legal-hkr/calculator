@@ -158,6 +158,21 @@ class ExpressionTest {
         assertEquals("[21]|", render(e.apply(Key.Backspace).apply(Key.Backspace)))
     }
 
+    @Test fun aWholeNumberNextToDigitsGetsATimes() {
+        // Review 15 Nov 2026: "2" and a history value of 3 must not read as "23"
+        val three = Key.Insert(Token.Value(Real.of(3)))
+        assertEquals("2×[3]|", render(type("2").apply(three)))
+        assertEquals("[3]×5|", render(Expression().apply(three).apply(key('5'))))
+        assertEquals("[3]×0.|", render(Expression().apply(three).apply(key('.'))))
+        assertEquals("2+[3]|", render(type("2+").apply(three)))
+    }
+
+    @Test fun anOperatorThatCantStandThereLeavesTheSign() {
+        check("(−|", "(-*")
+        check("−|", "-/")
+        check("√−|", "√-+")
+    }
+
     @Test fun ghostBrackets() {
         assertEquals(2, type("2*(3+s4").unclosedAtEnd())
         assertEquals(0, type("(2(").unclosedAtEnd())

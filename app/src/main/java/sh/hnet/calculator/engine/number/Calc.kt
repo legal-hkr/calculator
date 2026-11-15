@@ -195,11 +195,9 @@ object Calc {
             val lg = log10Estimate(a.abs())
             val exponent = b.num
             if (exponent.bitLength() > 31) {
-                // Only 1, −1 and 0 survive such a power; the rest is beyond the range either way
                 if (a.abs() == Rational.ONE) return Real.of(if (a.signum < 0 && exponent.testBit(0)) -Rational.ONE else Rational.ONE)
-                val grows = (lg > 0) == (exponent.signum() > 0)
-                if (grows) throw CalcException(CalcError.OVERFLOW)
-                return Real.ZERO
+                // A base near 1 stays in range even so (1.000001^3000000000 ≈ 10^1303): the general way decides
+                return null
             }
             val n = exponent.toInt()
             // An exact power of a long fraction grows too long to be worth it (1.0000001^1000000): the general way then

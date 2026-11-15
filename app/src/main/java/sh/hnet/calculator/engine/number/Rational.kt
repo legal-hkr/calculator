@@ -142,6 +142,8 @@ class Rational private constructor(val num: BigInteger, val den: BigInteger) : C
         /** The exact [n]-th root of a non-negative integer, or null when it isn't a perfect power. */
         fun integerRoot(x: BigInteger, n: Int): BigInteger? {
             if (x.signum() == 0 || x == BigInteger.ONE) return x
+            // x ≥ 2 and 2^n > x: the root lies between 1 and 2, never an integer (and 2^n is never built)
+            if (n >= x.bitLength()) return null
             if (n == 2) {
                 val r = x.sqrt()
                 return if (r * r == x) r else null

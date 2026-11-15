@@ -113,6 +113,10 @@ fun groupsOf(base: Base): DigitGroups? = when (base) {
     Base.DEC -> null
 }
 
+/** A whole number in a copied Programmer expression: digits in the base, no grouping, as the literals around it. */
+fun programmerValueCopy(base: Base, word: Word): (sh.hnet.calculator.engine.number.Real) -> String =
+    { v -> v.rational?.takeIf { it.isInteger }?.let { Programmer.copy(it.num, base, word) } ?: "?" }
+
 /** A whole number (Ans, a history value) in an expression of the Programmer: in the input base. */
 fun programmerValueText(base: Base, word: Word, style: NumberStyle): (sh.hnet.calculator.engine.number.Real) -> String =
     { v -> v.rational?.takeIf { it.isInteger }?.let { Programmer.text(it.num, base, word, style) } ?: "?" }
@@ -140,7 +144,7 @@ fun ProgrammerContent(style: NumberStyle, vibrate: Boolean) {
             .onPreviewKeyEvent { typed(it, vm) { copy(Programmer.copy(vm.value, vm.base, vm.word)) } },
     ) {
         WordChips(vm.word, onBits = vm::selectBits, onSigned = vm::toggleSigned, modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
-        ProgrammerDisplay(vm, style, onCopyExpression = { copy(ExpressionText.ascii(vm.expression.tokens, style)) }, modifier = Modifier.weight(1f))
+        ProgrammerDisplay(vm, style, onCopyExpression = { copy(ExpressionText.ascii(vm.expression.tokens, style, programmerValueCopy(vm.base, vm.word))) }, modifier = Modifier.weight(1f))
         BasesPanel(
             value = vm.value,
             selected = vm.base,

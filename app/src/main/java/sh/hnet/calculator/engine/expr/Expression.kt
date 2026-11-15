@@ -80,7 +80,9 @@ data class Expression(val tokens: List<Token> = emptyList(), val cursor: Int = t
         is Token.Operator -> operator(t.op)
         is Token.Postfix -> if (prev?.endsOperand == true) put(t) else this
         Token.Close -> if (unclosedBeforeCursor() > 0 && prev?.endsOperand == true) put(t) else this
-        is Token.Function, is Token.Constant, is Token.Value, Token.Sqrt, Token.Not, Token.Open -> if (prev == Token.Exponent) this else put(t)
+        // A whole number drawn next to an operand would read as one number ("2" and 3 as "23"): an explicit × between them
+        is Token.Value -> if (prev == Token.Exponent) this else if (prev?.endsOperand == true) put(Token.Operator(Op.TIMES), t) else put(t)
+        is Token.Function, is Token.Constant, Token.Sqrt, Token.Not, Token.Open -> if (prev == Token.Exponent) this else put(t)
     }
 
     // Number literals
@@ -102,6 +104,8 @@ data class Expression(val tokens: List<Token> = emptyList(), val cursor: Int = t
     }
 
     private fun digit(t: Token.Digit): Expression {
+        // After a whole number a digit starts a number of its own, with an explicit ×
+        if (prev is Token.Value) return put(Token.Operator(Op.TIMES), t)
         val literal = literalAround(cursor)
         val left = tokens.subList(literal.first, cursor)
         // A lone leading zero gives way: 0 then 7 is 7, not 07
@@ -113,6 +117,7 @@ data class Expression(val tokens: List<Token> = emptyList(), val cursor: Int = t
     }
 
     private fun point(): Expression {
+        if (prev is Token.Value) return put(Token.Operator(Op.TIMES), Token.Digit(0), Token.Point)
         val literal = literalAround(cursor)
         val inside = tokens.subList(literal.first, literal.last + 1)
         if (Token.Point in inside || Token.Exponent in inside) return this
@@ -139,7 +144,10 @@ data class Expression(val tokens: List<Token> = emptyList(), val cursor: Int = t
                 if (op == Op.MINUS && p.op in AFTER_WHICH_MINUS_IS_A_SIGN) return put(Token.Operator(op))
                 // An exponent's sign is part of a number, not an operator to replace
                 if (tokens.getOrNull(cursor - 2) == Token.Exponent) return this
-                Expression(tokens.without(cursor - 1), cursor - 1).operator(op)
+                // Replaced only where the new operator may stand; else the key does nothing ("(−" then × keeps the sign)
+                val shortened = Expression(tokens.without(cursor - 1), cursor - 1)
+                val replaced = shortened.operator(op)
+                if (replaced === shortened) this else replaced
             }
             else -> put(Token.Operator(op))
         }

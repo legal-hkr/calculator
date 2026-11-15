@@ -5,6 +5,9 @@ import sh.hnet.calculator.engine.expr.Fn
 import sh.hnet.calculator.engine.expr.Op
 import sh.hnet.calculator.engine.expr.PostOp
 import sh.hnet.calculator.engine.expr.Token
+import sh.hnet.calculator.engine.expr.endsOperand
+import sh.hnet.calculator.engine.expr.opens
+import sh.hnet.calculator.engine.expr.startsOperand
 import sh.hnet.calculator.engine.number.Real
 
 /**
@@ -89,7 +92,7 @@ class ExpressionText(val text: String, val offsets: IntArray) {
          * into the calculator – `*` `/` `-` `^`, `sqrt`, `pi`, `asin(`, no grouping; the language's
          * decimal separator; a whole number as its digits (`E` for the exponent).
          */
-        fun ascii(tokens: List<Token>, style: NumberStyle): String {
+        fun ascii(tokens: List<Token>, style: NumberStyle, value: ((Real) -> String)? = null): String {
             val sb = StringBuilder()
             tokens.forEachIndexed { k, t ->
                 sb.append(
@@ -132,9 +135,13 @@ class ExpressionText(val text: String, val offsets: IntArray) {
                         Token.Sqrt -> "sqrt"
                         Token.Not -> "NOT "
                         is Token.Value -> {
-                            val copy = Formatter.format(t.value, style.copy(grouping = false, decimals = null), 40).copy
-                            // A negative value after an operator keeps its own parentheses
-                            if (copy.startsWith("-") && tokens.getOrNull(k - 1).let { it is Token.Operator }) "($copy)" else copy
+                            val copy = value?.invoke(t.value) ?: Formatter.format(t.value, style.copy(grouping = false, decimals = null), 40).copy
+                            val before = tokens.getOrNull(k - 1)
+                            val after = tokens.getOrNull(k + 1)
+                            // Written so it pastes back as the same calculation: a negative value in parentheses
+                            // unless it opens the expression or a group, and an explicit * next to an operand
+                            val own = if (copy.startsWith("-") && before != null && !before.opens) "($copy)" else copy
+                            (if (before?.endsOperand == true) "*" else "") + own + (if (after?.startsOperand == true) "*" else "")
                         }
                     },
                 )

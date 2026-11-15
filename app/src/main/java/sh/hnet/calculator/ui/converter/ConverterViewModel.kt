@@ -64,6 +64,9 @@ class ConverterViewModel(application: Application) : AndroidViewModel(applicatio
     var output by mutableStateOf<Formatted?>(null)
         private set
 
+    /** The other card's value exactly, for typing into it. */
+    private var converted: Real? = null
+
     /** The typed value itself, for All units; null while there is none. */
     var input by mutableStateOf<Real?>(null)
         private set
@@ -168,17 +171,23 @@ class ConverterViewModel(application: Application) : AndroidViewModel(applicatio
     /** "=": the expression becomes its value; an error shows in the other card (SPEC §7.2). */
     fun equals() {
         if (!loaded || expression.isEmpty) return
-        when (val e = Parser.evaluate(expression.tokens, EvalContext())) {
-            is Evaluation.Value -> {
-                expression = Expression(listOf(Token.Value(e.value)))
-                changed()
-            }
-            Evaluation.Incomplete -> error = DisplayError.INCOMPLETE
-            is Evaluation.Failure -> error = when (e.error) {
-                CalcError.DIVISION_BY_ZERO -> DisplayError.DIVISION_BY_ZERO
-                CalcError.DOMAIN -> DisplayError.DOMAIN
-                CalcError.OVERFLOW -> DisplayError.OVERFLOW
-                CalcError.SYNTAX -> DisplayError.MALFORMED
+        val tokens = expression.tokens
+        job?.cancel()
+        // Off the main thread, as the Calculator's "=": a value may take long to settle (a large factorial, a zero to prove)
+        job = viewModelScope.launch {
+            val e = withContext(Dispatchers.Default) { runInterruptible { Parser.evaluate(tokens, EvalContext()) } }
+            when (e) {
+                is Evaluation.Value -> {
+                    expression = Expression(listOf(Token.Value(e.value)))
+                    changed()
+                }
+                Evaluation.Incomplete -> error = DisplayError.INCOMPLETE
+                is Evaluation.Failure -> error = when (e.error) {
+                    CalcError.DIVISION_BY_ZERO -> DisplayError.DIVISION_BY_ZERO
+                    CalcError.DOMAIN -> DisplayError.DOMAIN
+                    CalcError.OVERFLOW -> DisplayError.OVERFLOW
+                    CalcError.SYNTAX -> DisplayError.MALFORMED
+                }
             }
         }
     }
@@ -196,8 +205,16 @@ class ConverterViewModel(application: Application) : AndroidViewModel(applicatio
     fun typeIn(fromCard: Boolean) {
         if (!loaded || fromCard == typedInFrom) return
         val shown = output
+        val exactValue = converted
         typedInFrom = fromCard
-        expression = Expression(shown?.copy?.let { Paste.read(it, style.decimalComma) } ?: emptyList())
+        // Its exact value goes over: as digits when they are all shown, else as a whole number (no precision lost)
+        expression = Expression(
+            when {
+                exactValue == null -> emptyList()
+                shown != null && shown.exact && shown.exponent == null -> Paste.read(shown.copy, style.decimalComma) ?: listOf(Token.Value(exactValue))
+                else -> listOf(Token.Value(exactValue))
+            },
+        )
         error = null
         changed()
     }
@@ -233,6 +250,7 @@ class ConverterViewModel(application: Application) : AndroidViewModel(applicatio
         if (tokens.isEmpty()) {
             output = null
             input = null
+            converted = null
             inverseZero = false
             return
         }
@@ -241,7 +259,8 @@ class ConverterViewModel(application: Application) : AndroidViewModel(applicatio
                 runInterruptible {
                     val v = (Parser.preview(tokens, EvalContext()) as? Evaluation.Value)?.value ?: return@runInterruptible Outcome(null, null, false)
                     try {
-                        Outcome(v, Formatter.format(Units.convert(v, src, dst), style, width), false)
+                        val c = Units.convert(v, src, dst)
+                        Outcome(v, Formatter.format(c, style, width), false, c)
                     } catch (e: CalcException) {
                         val inverse = src.scale is Scale.Inverse || dst.scale is Scale.Inverse
                         Outcome(v, null, inverse && e.error == CalcError.DIVISION_BY_ZERO)
@@ -250,11 +269,12 @@ class ConverterViewModel(application: Application) : AndroidViewModel(applicatio
             }
             input = outcome.value
             output = outcome.formatted
+            converted = outcome.converted
             inverseZero = outcome.inverseZero
         }
     }
 
-    private class Outcome(val value: Real?, val formatted: Formatted?, val inverseZero: Boolean)
+    private class Outcome(val value: Real?, val formatted: Formatted?, val inverseZero: Boolean, val converted: Real? = null)
 
     private fun save() {
         remember()

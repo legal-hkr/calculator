@@ -112,6 +112,10 @@ class FormatterTest {
         }
         val withValue = listOf(sh.hnet.calculator.engine.expr.Token.Operator(sh.hnet.calculator.engine.expr.Op.MINUS).let { listOf(sh.hnet.calculator.engine.expr.Token.Digit(5), it) }, listOf(sh.hnet.calculator.engine.expr.Token.Value(q("-2.5")))).flatten()
         assertEquals("5-(-2.5)", ExpressionText.ascii(withValue, en))
+        // Review 15 Nov 2026: next to an operand a whole number keeps an explicit *
+        val t = sh.hnet.calculator.engine.expr.Token.Value(q("-3"))
+        assertEquals("2*(-3)", ExpressionText.ascii(listOf(sh.hnet.calculator.engine.expr.Token.Digit(2), t), en))
+        assertEquals("3*2", ExpressionText.ascii(listOf(sh.hnet.calculator.engine.expr.Token.Value(q("3")), sh.hnet.calculator.engine.expr.Token.Digit(2)), en))
     }
 
     @Test fun superscript() {

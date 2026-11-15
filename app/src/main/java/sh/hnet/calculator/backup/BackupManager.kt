@@ -121,7 +121,7 @@ class BackupManager(private val app: CalculatorApplication, private val stamps: 
                 result = e.result,
                 createdAt = e.createdAt,
                 base = e.base?.takeIf { name -> Base.entries.any { it.name == name } },
-                bits = e.bits,
+                bits = e.bits?.takeIf { it in setOf(8, 16, 32, 64) },
                 signed = e.signed,
             )
         }.groupBy { it.mode }.mapValues { (_, list) -> list.sortedBy { it.createdAt }.takeLast(HistoryRepository.LIMIT) }

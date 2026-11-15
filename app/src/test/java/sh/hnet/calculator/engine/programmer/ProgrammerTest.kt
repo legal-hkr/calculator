@@ -86,6 +86,10 @@ class ProgrammerTest {
         value(0xC0, "81 R 1", u8, Base.HEX)
         value(0x81, "81 L 8", u8, Base.HEX)
         value(0, "1 < 8", u8)
+        // Review 15 Nov 2026: a rotation by the word size or more goes round again
+        value(0x02, "1 L 9", u8, Base.HEX)
+        value(0xC0, "81 R 9", u8, Base.HEX)
+        value(0x81, "81 R 8", u8, Base.HEX)
     }
 
     @Test fun logic() {

@@ -72,6 +72,7 @@ import sh.hnet.calculator.engine.programmer.Base
 import sh.hnet.calculator.engine.programmer.Programmer
 import sh.hnet.calculator.engine.programmer.Word
 import sh.hnet.calculator.ui.programmer.groupsOf
+import sh.hnet.calculator.ui.programmer.programmerValueCopy
 import sh.hnet.calculator.ui.programmer.programmerValueText
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.ui.res.pluralStringResource
@@ -84,6 +85,8 @@ import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
+private val WORD_SIZES = setOf(8, 16, 32, 64)
+
 /** An entry decoded for the list: its parts as the display writes them. */
 private class Shown(val entry: HistoryEntry, val tokens: List<Token>, val value: Real, val day: LocalDate) {
     /** A Programmer entry's value, base and word, else null. */
@@ -91,7 +94,8 @@ private class Shown(val entry: HistoryEntry, val tokens: List<Token>, val value:
         entry.base?.let { name ->
             val base = Base.entries.firstOrNull { it.name == name } ?: return@let null
             val n = value.rational?.takeIf { it.isInteger }?.num ?: return@let null
-            Triple(n, base, Word(entry.bits ?: 64, entry.signed ?: true))
+            // A word size that isn't one of the four (a damaged backup) reads as 64 bits rather than failing
+            Triple(n, base, Word(entry.bits?.takeIf { it in WORD_SIZES } ?: 64, entry.signed ?: true))
         }
 }
 
@@ -214,7 +218,10 @@ fun HistoryScreen(
                                         val p = item.programmer
                                         copy(if (p != null) Programmer.copy(p.first, p.second, p.third) else Formatter.format(item.value, style, COPY_WIDTH).copy)
                                     },
-                                    onCopyExpression = { copy(ExpressionText.ascii(item.tokens, style)) },
+                                    onCopyExpression = {
+                                        val p = item.programmer
+                                        copy(ExpressionText.ascii(item.tokens, style, p?.let { programmerValueCopy(it.second, it.third) }))
+                                    },
                                     onDelete = { remove(item.entry) },
                                 )
                             }

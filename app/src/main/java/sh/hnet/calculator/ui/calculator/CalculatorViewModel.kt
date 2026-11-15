@@ -243,7 +243,7 @@ class CalculatorViewModel(application: Application) : AndroidViewModel(applicati
 
     /** 10ˣ: `10^(`, after a number with an explicit × (digits can't stand next to digits). */
     fun insertPowerOfTen() {
-        if (!showsResult && expression.tokens.getOrNull(expression.cursor - 1).let { it is Token.Digit || it == Token.Point }) {
+        if (!showsResult && expression.tokens.getOrNull(expression.cursor - 1).let { it is Token.Digit || it == Token.Point || it is Token.Value }) {
             press(Key.Insert(Token.Operator(Op.TIMES)))
         }
         listOf(Key.Insert(Token.Digit(1)), Key.Insert(Token.Digit(0)), Key.Insert(Token.Operator(Op.POWER)), Key.Insert(Token.Open)).forEach { press(it) }

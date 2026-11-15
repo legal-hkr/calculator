@@ -128,6 +128,23 @@ class CalcTest {
         }
     }
 
+    @Test fun hugeIntegerPowersOfBasesNearOne() {
+        // Review 15 Nov 2026: 1.000001^3000000000 ≈ 10^1302.9 is in range, not an overflow
+        val up = Calc.power(q("1.000001"), n(3_000_000_000))
+        assertEquals(1303, up.upperExponent())
+        val down = Calc.power(q("0.999999"), n(3_000_000_000))
+        assertTrue(down.signum() > 0)
+    }
+
+    @Test fun aRootOfAHugeDegreeIsNotBuilt() {
+        // Review 15 Nov 2026: 2^0.000000001 used to build 2^999999999 looking for an exact root
+        val started = System.nanoTime()
+        val x = Calc.power(n(2), q("0.000000001"))
+        digits("1.000000000693147180", x)
+        assertTrue((System.nanoTime() - started) / 1_000_000 < 2000)
+        assertNull(Rational.integerRoot(java.math.BigInteger.valueOf(8), 100))
+    }
+
     @Test fun moreDigitsOnDemand() {
         val x = Calc.sqrt(n(2))
         val d1000 = x.decimal(1000).toPlainString()

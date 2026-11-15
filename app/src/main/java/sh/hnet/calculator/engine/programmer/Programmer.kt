@@ -227,8 +227,9 @@ object Programmer {
             Op.SHL -> word.fromPattern(word.pattern(a).shiftLeft(shiftCount(b)))
             // Arithmetic for signed (a keeps its sign), logical for unsigned (a ≥ 0)
             Op.SHR -> word.fromPattern(a.shiftRight(shiftCount(b)))
-            Op.ROL -> rotate(a, shiftCount(b) % word.bits)
-            Op.ROR -> rotate(a, (word.bits - shiftCount(b) % word.bits) % word.bits)
+            // A rotation by the word size or more goes round again: counted modulo the word (a negative count turns the other way)
+            Op.ROL -> rotate(a, b.mod(BigInteger.valueOf(word.bits.toLong())).toInt())
+            Op.ROR -> rotate(a, (word.bits - b.mod(BigInteger.valueOf(word.bits.toLong())).toInt()) % word.bits)
             Op.POWER, Op.ROOT -> throw SyntaxSignal(i)
         }
 
