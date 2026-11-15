@@ -10,23 +10,23 @@
         <path
             android:pathData="M186,96 H326 A60,60 0 0,1 386,156 V356 A60,60 0 0,1 326,416 H186 A60,60 0 0,1 126,356 V156 A60,60 0 0,1 186,96 Z">
             <aapt:attr name="android:fillColor">
-                <gradient android:type="linear" android:startX="110" android:startY="90" android:endX="400" android:endY="420" android:startColor="#FFFFC21A" android:endColor="#FFF08C00" />
+                <gradient android:type="linear" android:startX="110" android:startY="90" android:endX="400" android:endY="420" android:startColor="#FFFFDB3A" android:endColor="#FFE86A00" />
             </aapt:attr>
         </path>
         <path
-            android:pathData="M186,136 H326 A22,22 0 0,1 348,158 V178 A22,22 0 0,1 326,200 H186 A22,22 0 0,1 164,178 V158 A22,22 0 0,1 186,136 Z">
+            android:pathData="M172,136 H340 A8,8 0 0,1 348,144 V192 A8,8 0 0,1 340,200 H172 A8,8 0 0,1 164,192 V144 A8,8 0 0,1 172,136 Z">
             <aapt:attr name="android:fillColor">
                 <gradient android:type="linear" android:startX="80" android:startY="80" android:endX="432" android:endY="432" android:startColor="#FF9A9DAA" android:endColor="#FF3E4150" />
             </aapt:attr>
         </path>
         <path
-            android:pathData="M186,270 H234 M278,270 H326 M302,246 V294 M193,329 L227,363 M227,329 L193,363 M278,332 H326 M278,360 H326"
+            android:pathData="M176,270 H244 M268,270 H336 M302,236 V304 M186,322 L234,370 M234,322 L186,370"
             android:strokeWidth="20"
-            android:strokeLineCap="round"
-            android:strokeLineJoin="round">
-            <aapt:attr name="android:strokeColor">
-                <gradient android:type="linear" android:startX="80" android:startY="80" android:endX="432" android:endY="432" android:startColor="#FF9A9DAA" android:endColor="#FF3E4150" />
-            </aapt:attr>
-        </path>
+            android:strokeColor="#FFFFFFFF"
+            android:strokeAlpha="0.75" />
+        <path
+            android:pathData="M268,332 H336 M268,360 H336"
+            android:strokeWidth="20"
+            android:strokeColor="#FFFFFFFF" />
     </group>
 </vector>

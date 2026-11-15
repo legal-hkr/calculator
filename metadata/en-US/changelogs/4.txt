@@ -1,0 +1,4 @@
+v0.2.2
+
+Changes:
+- App icon slightly tuned: brighter colors and white signs

@@ -3,7 +3,7 @@
  
 A private calculator for Android: basic and scientific, programmer mode and a unit converter, with exact decimal arithmetic and no Internet access.
  
-**Current version**: v0.2.1
+**Current version**: v0.2.2
  
 Source code and releases: [git.hnet.sh/hkr/calculator](https://git.hnet.sh/hkr/calculator)
  
