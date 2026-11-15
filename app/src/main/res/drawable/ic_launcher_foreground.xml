@@ -1,23 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Calculator launcher foreground: "− ×" over "+ =", bars 44 units with 8-unit corners. − × + in the family grey, = in green #139a4a to lime #7cc62e. 108 dp, viewport 768. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:aapt="http://schemas.android.com/aapt"
-    android:width="108dp" android:height="108dp"
-    android:viewportWidth="768" android:viewportHeight="768">
-    <path android:pathData="M218.00 270.00L366.00 270.00A8 8 0 0 1 374.00 278.00L374.00 306.00A8 8 0 0 1 366.00 314.00L218.00 314.00A8 8 0 0 1 210.00 306.00L210.00 278.00A8 8 0 0 1 218.00 270.00ZM433.66 218.54L549.46 334.34A8 8 0 0 1 549.46 345.66L529.66 365.46A8 8 0 0 1 518.34 365.46L402.54 249.66A8 8 0 0 1 402.54 238.34L422.34 218.54A8 8 0 0 1 433.66 218.54ZM402.54 334.34L518.34 218.54A8 8 0 0 1 529.66 218.54L549.46 238.34A8 8 0 0 1 549.46 249.66L433.66 365.46A8 8 0 0 1 422.34 365.46L402.54 345.66A8 8 0 0 1 402.54 334.34ZM218.00 454.00L366.00 454.00A8 8 0 0 1 374.00 462.00L374.00 490.00A8 8 0 0 1 366.00 498.00L218.00 498.00A8 8 0 0 1 210.00 490.00L210.00 462.00A8 8 0 0 1 218.00 454.00ZM314.00 402.00L314.00 550.00A8 8 0 0 1 306.00 558.00L278.00 558.00A8 8 0 0 1 270.00 550.00L270.00 402.00A8 8 0 0 1 278.00 394.00L306.00 394.00A8 8 0 0 1 314.00 402.00Z">
-        <aapt:attr name="android:fillColor">
-            <gradient android:type="linear" android:startX="210" android:startY="222" android:endX="546" android:endY="558">
-                <item android:offset="0" android:color="#FF9A9DAA"/>
-                <item android:offset="1" android:color="#FF3E4150"/>
-            </gradient>
-        </aapt:attr>
-    </path>
-    <path android:pathData="M402.00 418.00L550.00 418.00A8 8 0 0 1 558.00 426.00L558.00 454.00A8 8 0 0 1 550.00 462.00L402.00 462.00A8 8 0 0 1 394.00 454.00L394.00 426.00A8 8 0 0 1 402.00 418.00ZM402.00 490.00L550.00 490.00A8 8 0 0 1 558.00 498.00L558.00 526.00A8 8 0 0 1 550.00 534.00L402.00 534.00A8 8 0 0 1 394.00 526.00L394.00 498.00A8 8 0 0 1 402.00 490.00Z">
-        <aapt:attr name="android:fillColor">
-            <gradient android:type="linear" android:startX="394" android:startY="534" android:endX="558" android:endY="418">
-                <item android:offset="0" android:color="#FF139A4A"/>
-                <item android:offset="1" android:color="#FF7CC62E"/>
-            </gradient>
-        </aapt:attr>
-    </path>
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="768"
+    android:viewportHeight="768">
+    <!-- Drawn on a 512 x 512 grid, moved by 128 to sit in the adaptive icon's safe zone -->
+    <group android:translateX="128" android:translateY="128">
+        <path
+            android:pathData="M186,96 H326 A60,60 0 0,1 386,156 V356 A60,60 0 0,1 326,416 H186 A60,60 0 0,1 126,356 V156 A60,60 0 0,1 186,96 Z">
+            <aapt:attr name="android:fillColor">
+                <gradient android:type="linear" android:startX="110" android:startY="90" android:endX="400" android:endY="420" android:startColor="#FFFFC21A" android:endColor="#FFF08C00" />
+            </aapt:attr>
+        </path>
+        <path
+            android:pathData="M186,136 H326 A22,22 0 0,1 348,158 V178 A22,22 0 0,1 326,200 H186 A22,22 0 0,1 164,178 V158 A22,22 0 0,1 186,136 Z">
+            <aapt:attr name="android:fillColor">
+                <gradient android:type="linear" android:startX="80" android:startY="80" android:endX="432" android:endY="432" android:startColor="#FF9A9DAA" android:endColor="#FF3E4150" />
+            </aapt:attr>
+        </path>
+        <path
+            android:pathData="M186,270 H234 M278,270 H326 M302,246 V294 M193,329 L227,363 M227,329 L193,363 M278,332 H326 M278,360 H326"
+            android:strokeWidth="20"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round">
+            <aapt:attr name="android:strokeColor">
+                <gradient android:type="linear" android:startX="80" android:startY="80" android:endX="432" android:endY="432" android:startColor="#FF9A9DAA" android:endColor="#FF3E4150" />
+            </aapt:attr>
+        </path>
+    </group>
 </vector>
