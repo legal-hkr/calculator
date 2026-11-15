@@ -7,6 +7,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.util.SizeF
 import android.view.View
 import android.widget.RemoteViews
 import androidx.core.content.edit
@@ -115,16 +116,29 @@ class CalculatorWidget : AppWidgetProvider() {
             return NumberStyle(decimalComma = decimalComma, grouping = settings.grouping, decimals = settings.decimals, notation = settings.notation)
         }
 
+        /**
+         * Both layouts at once (SPEC-widget §3.2), the launcher showing the one for the widget's height:
+         * compact for two rows, full from three. Declared at 180 and 300 dp, so the choice is the same
+         * whether a launcher takes the largest that fits or the nearest.
+         */
         private fun draw(context: Context, manager: AppWidgetManager, id: Int, state: WidgetState, style: NumberStyle) {
             val widthDp = manager.getAppWidgetOptions(id).width()
-            val views = RemoteViews(context.packageName, R.layout.widget_calculator)
-            display(context, views, state, style, widthDp)
-            keys(context, views, id, style)
-            manager.updateAppWidget(id, views)
+            val full = RemoteViews(context.packageName, R.layout.widget_calculator).also {
+                display(context, it, state, style, widthDp, compact = false)
+                keys(context, it, id, style)
+            }
+            val compact = RemoteViews(context.packageName, R.layout.widget_calculator_compact).also {
+                display(context, it, state, style, widthDp, compact = true)
+                keys(context, it, id, style)
+            }
+            manager.updateAppWidget(id, RemoteViews(mapOf(SizeF(widthDp.toFloat(), COMPACT_FROM_DP) to compact, SizeF(widthDp.toFloat(), FULL_FROM_DP) to full)))
         }
 
-        /** The display (SPEC-widget §5): small line and result after "=", else the expression with its preview or error. */
-        private fun display(context: Context, views: RemoteViews, state: WidgetState, style: NumberStyle, widthDp: Int) {
+        /**
+         * The display (SPEC-widget §5): small line and result after "=", else the expression with its
+         * preview or error. [compact] (§6): one line only – the expression, or the result in its place.
+         */
+        private fun display(context: Context, views: RemoteViews, state: WidgetState, style: NumberStyle, widthDp: Int, compact: Boolean) {
             fun shown(view: Int, text: String?) {
                 views.setViewVisibility(view, if (text.isNullOrEmpty()) View.GONE else View.VISIBLE)
                 views.setTextViewText(view, text.orEmpty())
@@ -133,23 +147,28 @@ class CalculatorWidget : AppWidgetProvider() {
             val evaluated = state.evaluated
             val description: String
             if (result != null && evaluated != null) {
-                val text = written(Formatter.format(result, style, characters(widthDp, MAIN_DP)))
-                shown(R.id.small, ExpressionText.render(evaluated, style).text + " =")
+                val text = written(Formatter.format(result, style, characters(widthDp, if (compact) COMPACT_DP else MAIN_DP)))
                 views.setTextViewText(R.id.main, text)
                 views.setViewVisibility(R.id.placeholder, View.GONE)
-                shown(R.id.preview, null)
-                shown(R.id.error, null)
+                if (!compact) {
+                    shown(R.id.small, ExpressionText.render(evaluated, style).text + " =")
+                    shown(R.id.preview, null)
+                    shown(R.id.error, null)
+                }
                 description = context.getString(R.string.content_description_widget_result, text)
             } else {
                 val expression = ExpressionText.render(state.tokens, style).text
-                shown(R.id.small, null)
                 views.setTextViewText(R.id.main, expression)
                 views.setViewVisibility(R.id.placeholder, if (state.tokens.isEmpty()) View.VISIBLE else View.GONE)
                 val error = state.error
-                if (error != null) {
+                if (compact) {
+                    // No preview and no message: an error leaves the expression as it was
+                } else if (error != null) {
+                    shown(R.id.small, null)
                     shown(R.id.preview, null)
                     shown(R.id.error, context.getString(error.message))
                 } else {
+                    shown(R.id.small, null)
                     shown(R.id.error, null)
                     shown(R.id.preview, preview(state.tokens, style, characters(widthDp, PREVIEW_DP)))
                 }
@@ -235,6 +254,9 @@ class CalculatorWidget : AppWidgetProvider() {
         private const val CARD_PADDING_DP = 10
         private const val DISPLAY_PADDING_DP = 8
         private const val MAIN_DP = 30f
+        private const val COMPACT_DP = 26f
+        private const val COMPACT_FROM_DP = 180f
+        private const val FULL_FROM_DP = 300f
         private const val PREVIEW_DP = 18f
 
         /** The width of a tabular digit of Roboto, as a share of the text size. */
