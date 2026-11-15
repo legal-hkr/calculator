@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The calculator widget (SPEC-widget §3): four cells wide and only that (resized in height alone), three rows high. The compact layout for two rows comes with stage 2; until then the least height is three rows (about 362 dp on the Pixel launcher, so 300 dp asks for three). -->
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:description="@string/widget_calculator_description"
+    android:initialLayout="@layout/widget_calculator"
+    android:minWidth="250dp"
+    android:minHeight="300dp"
+    android:minResizeHeight="300dp"
+    android:maxResizeHeight="400dp"
+    android:previewLayout="@layout/widget_calculator_preview"
+    android:resizeMode="vertical"
+    android:targetCellWidth="4"
+    android:targetCellHeight="3"
+    android:updatePeriodMillis="0"
+    android:widgetCategory="home_screen" />

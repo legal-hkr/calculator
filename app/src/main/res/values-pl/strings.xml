@@ -291,6 +291,19 @@
     <string name="msg_confirm_history_off">Obie listy historii zostaną usunięte. Od tej chwili obliczenia, ostatni wynik i wartości przelicznika będą usuwane przy zamknięciu aplikacji.</string>
     <string name="button_turn_off">Wyłącz</string>
 
+    <!-- Widget -->
+    <string name="widget_calculator_name">Kalkulator</string>
+    <string name="widget_calculator_description">Szybkie obliczenia na ekranie głównym.</string>
+    <string name="content_description_widget_expression">Wyrażenie: %1$s</string>
+    <string name="content_description_widget_result">Wynik: %1$s</string>
+    <string name="content_description_widget_empty">Kalkulator. Nic nie wpisano.</string>
+    <string name="content_description_key_add">Plus</string>
+    <string name="content_description_key_subtract">Minus</string>
+    <string name="content_description_key_multiply">Mnożenie</string>
+    <string name="content_description_key_divide">Dzielenie</string>
+    <string name="content_description_key_percent">Procent</string>
+    <string name="content_description_key_equals">Równa się</string>
+
     <!-- Settings -->
     <string name="title_settings">Ustawienia</string>
     <string name="title_settings_group_app">Aplikacja</string>

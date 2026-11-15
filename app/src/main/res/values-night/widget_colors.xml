@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Widget colors (SPEC-widget §4.3), as News's: the system's dynamic color roles, dark; see values/widget_colors.xml. The launcher draws the widget from these resources, so it follows the theme by itself; the app's own UI takes its colors in Compose. -->
+    <color name="widget_surface">@android:color/system_surface_dark</color>
+    <color name="widget_on_surface">@android:color/system_on_surface_dark</color>
+    <color name="widget_on_surface_variant">@android:color/system_on_surface_variant_dark</color>
+    <color name="widget_surface_container_high">@android:color/system_surface_container_high_dark</color>
+    <color name="widget_secondary_container">@android:color/system_secondary_container_dark</color>
+    <color name="widget_on_secondary_container">@android:color/system_on_secondary_container_dark</color>
+    <color name="widget_tertiary_container">@android:color/system_tertiary_container_dark</color>
+    <color name="widget_on_tertiary_container">@android:color/system_on_tertiary_container_dark</color>
+    <color name="widget_primary">@android:color/system_primary_dark</color>
+    <color name="widget_on_primary">@android:color/system_on_primary_dark</color>
+    <color name="widget_error">@android:color/system_error_dark</color>
+</resources>

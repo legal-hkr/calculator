@@ -26,6 +26,19 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- The calculator widget (SPEC-widget). Exported as the system requires: the launcher's widget service sends its updates. -->
+        <receiver
+            android:name=".widget.CalculatorWidget"
+            android:exported="true"
+            android:label="@string/widget_calculator_name">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_calculator" />
+        </receiver>
     </application>
 
 </manifest>

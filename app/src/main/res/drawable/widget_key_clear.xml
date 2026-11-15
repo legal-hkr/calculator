@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A key of the calculator widget (SPEC-widget §4.2): C and ⌫ – round. The press is the system's ripple over the shape, in the launcher's highlight color. -->
+<ripple xmlns:android="http://schemas.android.com/apk/res/android" android:color="?android:attr/colorControlHighlight">
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="@color/widget_tertiary_container" />
+            <corners android:radius="999dp" />
+        </shape>
+    </item>
+</ripple>
