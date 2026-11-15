@@ -39,6 +39,11 @@
                 android:name="android.appwidget.provider"
                 android:resource="@xml/widget_calculator" />
         </receiver>
+
+        <!-- The widget's keys: only the widget's own pending intents, no other app, reach it. -->
+        <receiver
+            android:name=".widget.WidgetKeyReceiver"
+            android:exported="false" />
     </application>
 
 </manifest>

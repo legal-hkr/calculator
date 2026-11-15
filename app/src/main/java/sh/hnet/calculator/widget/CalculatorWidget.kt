@@ -3,6 +3,7 @@ package sh.hnet.calculator.widget
 import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
+import android.content.BroadcastReceiver
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -12,6 +13,7 @@ import android.view.View
 import android.widget.RemoteViews
 import androidx.core.content.edit
 import androidx.core.net.toUri
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -30,15 +32,12 @@ import sh.hnet.calculator.engine.number.CalcError
 import sh.hnet.calculator.engine.number.CalcException
 
 /**
- * The calculator widget (SPEC-widget): a key's tap comes here as a broadcast, the widget's state
- * changes and the widget is drawn again. It never opens the app and writes nothing to History.
- * Exported as the system requires (the launcher's widget service sends its updates); its keys'
- * intents name this class, so only this app's own pending intents reach it with a key.
+ * A key of the calculator widget: its tap comes here as a broadcast, the widget's state changes and
+ * the widget is drawn again. Not exported, so no other app can press the keys; the widget's own
+ * pending intents name it and reach it all the same.
  */
-class CalculatorWidget : AppWidgetProvider() {
-
+class WidgetKeyReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        if (intent.action != ACTION_KEY) return super.onReceive(context, intent)
         // calculator-widget://key/<appWidgetId>/<KEY>
         val segments = intent.data?.pathSegments ?: return
         val id = segments.getOrNull(0)?.toIntOrNull() ?: return
@@ -47,34 +46,41 @@ class CalculatorWidget : AppWidgetProvider() {
         val app = context.applicationContext as CalculatorApplication
         app.appScope.launch {
             try {
-                lock.withLock {
-                    val style = style(app)
-                    val state = WidgetStore.get(app, id)
-                    val next = WidgetCalculator.press(state, key) { ExpressionText.render(it, style).text.length }
-                    WidgetStore.set(app, id, next)
-                    draw(app, AppWidgetManager.getInstance(app), id, next, style)
-                }
-            } catch (_: Exception) {
-                // A widget must never take the app down; the next key draws it again
+                CalculatorWidget.press(app, id, key)
             } finally {
                 pending.finish()
             }
         }
     }
+}
+
+/**
+ * The calculator widget (SPEC-widget): drawn from each widget's stored state. It never opens the
+ * app and writes nothing to History. Exported as the system requires (the launcher's widget service
+ * sends its updates); the keys go to [WidgetKeyReceiver].
+ */
+class CalculatorWidget : AppWidgetProvider() {
 
     override fun onUpdate(context: Context, manager: AppWidgetManager, ids: IntArray) = redraw(context, ids)
 
     /** Resized: the result is fitted to the new width. */
     override fun onAppWidgetOptionsChanged(context: Context, manager: AppWidgetManager, id: Int, options: Bundle) = redraw(context, intArrayOf(id))
 
-    override fun onDeleted(context: Context, ids: IntArray) = WidgetStore.forget(context, ids)
+    /** Under the lock: a key still being handled must not write the state back after it is gone. */
+    override fun onDeleted(context: Context, ids: IntArray) = async(context) { lock.withLock { WidgetStore.forget(it, ids) } }
 
-    private fun redraw(context: Context, ids: IntArray) {
+    private fun redraw(context: Context, ids: IntArray) = async(context) { drawAll(it, ids) }
+
+    private fun async(context: Context, block: suspend (CalculatorApplication) -> Unit) {
         val pending = goAsync()
         val app = context.applicationContext as CalculatorApplication
         app.appScope.launch {
             try {
-                drawAll(app, ids)
+                block(app)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (_: Exception) {
+                // A widget must never take the app down; the next update draws it again
             } finally {
                 pending.finish()
             }
@@ -82,20 +88,47 @@ class CalculatorWidget : AppWidgetProvider() {
     }
 
     companion object {
-        private const val ACTION_KEY = "sh.hnet.calculator.widget.KEY"
-
         /** One key or redraw at a time: two quick taps must not read the same state. */
         private val lock = Mutex()
+
+        /** A key of a placed widget; an id that isn't one (removed meanwhile) is left alone, nothing stored for it. */
+        internal suspend fun press(app: CalculatorApplication, id: Int, key: WidgetKey) {
+            try {
+                lock.withLock {
+                    val manager = AppWidgetManager.getInstance(app)
+                    if (id !in placed(app, manager)) return
+                    val style = style(app)
+                    val next = WidgetCalculator.press(WidgetStore.get(app, id), key) { ExpressionText.render(it, style).text.length }
+                    WidgetStore.set(app, id, next)
+                    draw(app, manager, id, next, style)
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (_: Exception) {
+                // A widget must never take the app down; the next key draws it again
+            }
+        }
+
+        private fun placed(app: CalculatorApplication, manager: AppWidgetManager): IntArray =
+            manager.getAppWidgetIds(ComponentName(app, CalculatorWidget::class.java))
 
         /** Every placed widget again: the app's language or Calculation settings changed (SPEC-widget §7.5). */
         fun updateAll(context: Context) {
             val app = context.applicationContext as CalculatorApplication
-            app.appScope.launch { drawAll(app, null) }
+            app.appScope.launch {
+                try {
+                    drawAll(app, null)
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (_: Exception) {
+                    // Settings that can't be read now: drawn at the next update
+                }
+            }
         }
 
         private suspend fun drawAll(app: CalculatorApplication, only: IntArray?) {
             val manager = AppWidgetManager.getInstance(app)
-            val ids = only ?: manager.getAppWidgetIds(ComponentName(app, CalculatorWidget::class.java))
+            val ids = only ?: placed(app, manager)
             if (ids.isEmpty()) return
             lock.withLock {
                 val style = style(app)
@@ -119,7 +152,8 @@ class CalculatorWidget : AppWidgetProvider() {
         /**
          * Both layouts at once (SPEC-widget §3.2), the launcher showing the one for the widget's height:
          * compact for two rows, full from three. Declared at 180 and 300 dp, so the choice is the same
-         * whether a launcher takes the largest that fits or the nearest.
+         * whether a launcher takes the largest that fits or the nearest. Width 0: the choice is by
+         * height alone, never thrown to the compact layout by a width the options round up.
          */
         private fun draw(context: Context, manager: AppWidgetManager, id: Int, state: WidgetState, style: NumberStyle) {
             val widthDp = manager.getAppWidgetOptions(id).width()
@@ -131,7 +165,7 @@ class CalculatorWidget : AppWidgetProvider() {
                 display(context, it, state, style, widthDp, compact = true)
                 keys(context, it, id, style)
             }
-            manager.updateAppWidget(id, RemoteViews(mapOf(SizeF(widthDp.toFloat(), COMPACT_FROM_DP) to compact, SizeF(widthDp.toFloat(), FULL_FROM_DP) to full)))
+            manager.updateAppWidget(id, RemoteViews(mapOf(SizeF(0f, COMPACT_FROM_DP) to compact, SizeF(0f, FULL_FROM_DP) to full)))
         }
 
         /**
@@ -211,8 +245,7 @@ class CalculatorWidget : AppWidgetProvider() {
 
         /** Every key its own address: intents that differ only in extras would be one (Music's lesson). */
         private fun keyIntent(context: Context, id: Int, key: WidgetKey): PendingIntent {
-            val intent = Intent(context, CalculatorWidget::class.java)
-                .setAction(ACTION_KEY)
+            val intent = Intent(context, WidgetKeyReceiver::class.java)
                 .setData("calculator-widget://key/$id/${key.name}".toUri())
             return PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
         }
