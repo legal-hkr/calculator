@@ -1,0 +1,5 @@
+v0.2.0
+
+Nowości:
+- Widżet kalkulatora na ekran główny: cztery podstawowe działania, procent i zmiana znaku, z dokładną arytmetyką i podglądem wyniku na żywo
+- Każdy widżet pamięta swoje obliczenie aż do wyczyszczenia; wysokość dwóch lub trzech rzędów

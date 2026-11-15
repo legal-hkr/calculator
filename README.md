@@ -3,7 +3,7 @@
  
 A private calculator for Android: basic and scientific, programmer mode and a unit converter, with exact decimal arithmetic and no Internet access.
  
-**Current version**: v0.1.0
+**Current version**: v0.2.0
  
 Source code and releases: [git.hnet.sh/hkr/calculator](https://git.hnet.sh/hkr/calculator)
  
@@ -36,6 +36,11 @@ Calculator calculates exactly: 0.1 + 0.2 is 0.3, and 1 ÷ 3 × 3 is 1. Irrationa
 - **Categories**: 14, from length and mass to data, fuel consumption and frequency
 - **Exact**: Factors from the units’ definitions; US and imperial units listed separately
 - **Search**: Units by name or symbol in English and Polish, or all units of a category in one list
+### Widget
+
+- **On the home screen**: The four basic operations, percent and sign change, with the app’s exact arithmetic and a live preview
+- **Its own calculation**: Each widget keeps its expression until cleared; nothing is added to History
+- **Sizes**: Four cells wide; three rows high, or two with a single-line display
 ### Settings
  
 - **History**: For Calculator and Programmer modes, with day groups, reuse, copy and delete; or none at all, with nothing kept after the app closes

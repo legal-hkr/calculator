@@ -18,6 +18,10 @@ Przelicznik:
 - Dokładne przeliczniki z definicji jednostek; jednostki amerykańskie i brytyjskie rozróżnione
 - Wyszukiwanie jednostek po nazwie i symbolu, po polsku i angielsku, albo lista wszystkich jednostek kategorii
 
+Widżet:
+- Kalkulator na ekranie głównym: cztery podstawowe działania, procent i zmiana znaku, z dokładną arytmetyką aplikacji i podglądem wyniku na żywo
+- Każdy widżet pamięta swoje obliczenie aż do wyczyszczenia; ma wysokość trzech rzędów albo dwóch, wtedy z jednym wierszem wyświetlacza
+
 A także:
 - Historia trybów Kalkulator i Programista, pogrupowana według dni, z ponownym użyciem, kopiowaniem i usuwaniem; albo bez historii, wtedy po zamknięciu aplikacji nic nie jest zachowywane
 - Miejsca po przecinku, notacja naukowa, separator tysięcy i wibracja klawiszy

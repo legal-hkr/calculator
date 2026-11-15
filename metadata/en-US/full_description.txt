@@ -18,6 +18,10 @@ Converter:
 - Exact factors from the units’ definitions; US and imperial units listed separately
 - Unit search by name or symbol in English and Polish, or all units of a category in one list
 
+Widget:
+- A calculator on the home screen: the four basic operations, percent and sign change, with the app’s exact arithmetic and a live preview
+- Each widget keeps its own calculation until cleared; three rows high, or two with a single-line display
+
 And also:
 - History for Calculator and Programmer modes, with day groups, reuse, copy and delete; or no history at all, with nothing kept after the app closes
 - Decimal places, scientific notation, the thousands separator and key vibration

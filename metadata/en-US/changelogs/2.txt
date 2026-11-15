@@ -1,0 +1,5 @@
+v0.2.0
+
+New:
+- Calculator widget for the home screen: the four basic operations, percent and sign change, with exact arithmetic and a live preview of the result
+- Each widget keeps its own calculation until cleared; resizable to two or three rows
