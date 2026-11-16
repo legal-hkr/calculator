@@ -231,7 +231,7 @@ class CalculatorWidget : AppWidgetProvider() {
 
         /** The characters that fit the display (SPEC-widget §7.3): its width over tabular digits of the size. */
         private fun characters(widthDp: Int, textDp: Float): Int {
-            val display = widthDp - CARD_PADDING_DP * 2 - DISPLAY_PADDING_DP * 2
+            val display = widthDp - SHADOW_ROOM_DP * 2 - CARD_PADDING_DP * 2 - DISPLAY_PADDING_DP * 2
             return ((display / (DIGIT_WIDTH * textDp)).toInt() - 1).coerceAtLeast(4)
         }
 
@@ -284,6 +284,8 @@ class CalculatorWidget : AppWidgetProvider() {
         )
 
         private const val DEFAULT_WIDTH_DP = 328
+        /** The room left at each side of the card for its shadow (the layouts' margins). */
+        private const val SHADOW_ROOM_DP = 2
         private const val CARD_PADDING_DP = 10
         private const val DISPLAY_PADDING_DP = 8
         private const val MAIN_DP = 30f

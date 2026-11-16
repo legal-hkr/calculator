@@ -1,22 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- The calculator widget's card (SPEC-widget §4.1): the surface, radius 24 (News's frame), over the family's soft shadow. Remote views have no elevation, so the shadow is two translucent copies of the shape, one dp lower – as the shadows of Clock's widgets. The launcher keeps the widget's corners from this shape (@android:id/background with clipToOutline). -->
-<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:top="1dp">
-        <shape android:shape="rectangle">
-            <solid android:color="#14000000" />
-            <corners android:radius="24dp" />
-        </shape>
-    </item>
-    <item android:bottom="1dp" android:top="2dp">
-        <shape android:shape="rectangle">
-            <solid android:color="#0A000000" />
-            <corners android:radius="24dp" />
-        </shape>
-    </item>
-    <item android:bottom="1dp">
-        <shape android:shape="rectangle">
-            <solid android:color="@color/widget_surface" />
-            <corners android:radius="24dp" />
-        </shape>
-    </item>
-</layer-list>
+<!-- The calculator widget's card (SPEC-widget §4.1): the surface, radius 24 (News's frame). Its shadow is the card's own `android:elevation` (2 dp, as the pieces of Music's, Clock's, News's and Calendar's widgets), drawn by the transparent root around it. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <solid android:color="@color/widget_surface" />
+    <corners android:radius="24dp" />
+</shape>

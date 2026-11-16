@@ -1,53 +1,66 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- The calculator widget, compact layout for two rows (SPEC-widget §6): one line in a 46 dp display – the expression while typing, the result in its place after "=" –, no preview, no line above the result, no error message. -->
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     tools:ignore="SpUsage,HardcodedText"
     android:id="@android:id/background"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/widget_card"
-    android:clipToOutline="true"
-    android:orientation="vertical"
-    android:padding="10dp">
+    android:background="@drawable/widget_floating_frame"
+    android:clipChildren="false"
+    android:clipToOutline="true">
 
-    <FrameLayout
-        android:id="@+id/display"
+    <!-- The card with its shadow: 2 dp of room at the start, the top and the end, 4 at the foot, where the shadow falls -->
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="46dp"
-        android:layout_marginBottom="8dp"
-        android:accessibilityLiveRegion="polite"
-        android:paddingStart="8dp"
-        android:paddingEnd="8dp">
+        android:layout_height="match_parent"
+        android:layout_marginStart="2dp"
+        android:layout_marginTop="2dp"
+        android:layout_marginEnd="2dp"
+        android:layout_marginBottom="4dp"
+        android:background="@drawable/widget_card"
+        android:elevation="2dp"
+        android:orientation="vertical"
+        android:padding="10dp">
 
-        <TextView
-            android:id="@+id/main"
+        <FrameLayout
+            android:id="@+id/display"
             android:layout_width="match_parent"
-            android:layout_height="32dp"
-            android:layout_gravity="center_vertical"
-            android:ellipsize="start"
-            android:fontFeatureSettings="tnum"
-            android:gravity="end|center_vertical"
-            android:includeFontPadding="false"
-            android:maxLines="1"
-            android:text=""
-            android:textColor="@color/widget_on_surface"
-            android:textSize="26dp" />
+            android:layout_height="46dp"
+            android:layout_marginBottom="8dp"
+            android:accessibilityLiveRegion="polite"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp">
 
-        <!-- Nothing typed: a 0 in on-surface-variant, not part of the expression -->
-        <TextView
-            android:id="@+id/placeholder"
-            android:layout_width="match_parent"
-            android:layout_height="32dp"
-            android:layout_gravity="center_vertical"
-            android:fontFeatureSettings="tnum"
-            android:gravity="end|center_vertical"
-            android:includeFontPadding="false"
-            android:maxLines="1"
-            android:text="0"
-            android:textColor="@color/widget_on_surface_variant"
-            android:textSize="26dp" />
-    </FrameLayout>
+            <TextView
+                android:id="@+id/main"
+                android:layout_width="match_parent"
+                android:layout_height="32dp"
+                android:layout_gravity="center_vertical"
+                android:ellipsize="start"
+                android:fontFeatureSettings="tnum"
+                android:gravity="end|center_vertical"
+                android:includeFontPadding="false"
+                android:maxLines="1"
+                android:text=""
+                android:textColor="@color/widget_on_surface"
+                android:textSize="26dp" />
 
-    <include layout="@layout/widget_calculator_keys_compact" />
-</LinearLayout>
+            <!-- Nothing typed: a 0 in on-surface-variant, not part of the expression -->
+            <TextView
+                android:id="@+id/placeholder"
+                android:layout_width="match_parent"
+                android:layout_height="32dp"
+                android:layout_gravity="center_vertical"
+                android:fontFeatureSettings="tnum"
+                android:gravity="end|center_vertical"
+                android:includeFontPadding="false"
+                android:maxLines="1"
+                android:text="0"
+                android:textColor="@color/widget_on_surface_variant"
+                android:textSize="26dp" />
+        </FrameLayout>
+
+        <include layout="@layout/widget_calculator_keys_compact" />
+    </LinearLayout>
+</FrameLayout>

@@ -1,107 +1,120 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- The widget picker's preview (SPEC-widget §10): the full layout with sample numbers, set here for the preview only. -->
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     tools:ignore="SpUsage,HardcodedText"
     android:id="@android:id/background"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/widget_card"
-    android:clipToOutline="true"
-    android:orientation="vertical"
-    android:padding="10dp">
+    android:background="@drawable/widget_floating_frame"
+    android:clipChildren="false"
+    android:clipToOutline="true">
 
-    <!-- The display (SPEC-widget §5): end-aligned at the bottom of its 84 dp; one line each, never wrapped -->
+    <!-- The card with its shadow: 2 dp of room at the start, the top and the end, 4 at the foot, where the shadow falls -->
     <LinearLayout
-        android:id="@+id/display"
         android:layout_width="match_parent"
-        android:layout_height="84dp"
-        android:layout_marginBottom="8dp"
-        android:accessibilityLiveRegion="polite"
-        android:gravity="bottom|end"
+        android:layout_height="match_parent"
+        android:layout_marginStart="2dp"
+        android:layout_marginTop="2dp"
+        android:layout_marginEnd="2dp"
+        android:layout_marginBottom="4dp"
+        android:background="@drawable/widget_card"
+        android:elevation="2dp"
         android:orientation="vertical"
-        android:paddingStart="8dp"
-        android:paddingEnd="8dp">
+        android:padding="10dp">
 
-        <TextView
-            android:id="@+id/small"
+        <!-- The display (SPEC-widget §5): end-aligned at the bottom of its 84 dp; one line each, never wrapped -->
+        <LinearLayout
+            android:id="@+id/display"
             android:layout_width="match_parent"
-            android:layout_height="18dp"
-            android:layout_marginBottom="2dp"
-            android:ellipsize="start"
-            android:fontFeatureSettings="tnum"
-            android:gravity="end|center_vertical"
-            android:includeFontPadding="false"
-            android:maxLines="1"
-            android:text=""
-            android:textColor="@color/widget_on_surface_variant"
-            android:textSize="14dp"
-            android:visibility="gone" />
-
-        <FrameLayout
-            android:layout_width="match_parent"
-            android:layout_height="36dp">
+            android:layout_height="84dp"
+            android:layout_marginBottom="8dp"
+            android:accessibilityLiveRegion="polite"
+            android:gravity="bottom|end"
+            android:orientation="vertical"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp">
 
             <TextView
-                android:id="@+id/main"
+                android:id="@+id/small"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="18dp"
+                android:layout_marginBottom="2dp"
                 android:ellipsize="start"
                 android:fontFeatureSettings="tnum"
                 android:gravity="end|center_vertical"
                 android:includeFontPadding="false"
                 android:maxLines="1"
-                android:text="1 234 × 3"
-                android:textColor="@color/widget_on_surface"
-                android:textSize="30dp" />
-
-            <!-- Nothing typed: a 0 in on-surface-variant, not part of the expression -->
-            <TextView
-                android:id="@+id/placeholder"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:fontFeatureSettings="tnum"
-                android:gravity="end|center_vertical"
-                android:includeFontPadding="false"
-                android:maxLines="1"
-                android:text="0"
-                android:textColor="@color/widget_on_surface_variant"
-                android:textSize="30dp"
-                android:visibility="gone" />
-        </FrameLayout>
-
-        <FrameLayout
-            android:layout_width="match_parent"
-            android:layout_height="22dp"
-            android:layout_marginTop="2dp">
-
-            <TextView
-                android:id="@+id/preview"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:ellipsize="end"
-                android:fontFeatureSettings="tnum"
-                android:gravity="end|center_vertical"
-                android:includeFontPadding="false"
-                android:maxLines="1"
-                android:text="3 702"
-                android:textColor="@color/widget_on_surface_variant"
-                android:textSize="18dp" />
-
-            <TextView
-                android:id="@+id/error"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:ellipsize="end"
-                android:gravity="end|center_vertical"
-                android:includeFontPadding="false"
-                android:maxLines="1"
                 android:text=""
-                android:textColor="@color/widget_error"
-                android:textSize="15dp"
+                android:textColor="@color/widget_on_surface_variant"
+                android:textSize="14dp"
                 android:visibility="gone" />
-        </FrameLayout>
-    </LinearLayout>
 
-    <include layout="@layout/widget_calculator_keys" />
-</LinearLayout>
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="36dp">
+
+                <TextView
+                    android:id="@+id/main"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:ellipsize="start"
+                    android:fontFeatureSettings="tnum"
+                    android:gravity="end|center_vertical"
+                    android:includeFontPadding="false"
+                    android:maxLines="1"
+                    android:text="1 234 × 3"
+                    android:textColor="@color/widget_on_surface"
+                    android:textSize="30dp" />
+
+                <!-- Nothing typed: a 0 in on-surface-variant, not part of the expression -->
+                <TextView
+                    android:id="@+id/placeholder"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:fontFeatureSettings="tnum"
+                    android:gravity="end|center_vertical"
+                    android:includeFontPadding="false"
+                    android:maxLines="1"
+                    android:text="0"
+                    android:textColor="@color/widget_on_surface_variant"
+                    android:textSize="30dp"
+                    android:visibility="gone" />
+            </FrameLayout>
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="22dp"
+                android:layout_marginTop="2dp">
+
+                <TextView
+                    android:id="@+id/preview"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:ellipsize="end"
+                    android:fontFeatureSettings="tnum"
+                    android:gravity="end|center_vertical"
+                    android:includeFontPadding="false"
+                    android:maxLines="1"
+                    android:text="3 702"
+                    android:textColor="@color/widget_on_surface_variant"
+                    android:textSize="18dp" />
+
+                <TextView
+                    android:id="@+id/error"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:ellipsize="end"
+                    android:gravity="end|center_vertical"
+                    android:includeFontPadding="false"
+                    android:maxLines="1"
+                    android:text=""
+                    android:textColor="@color/widget_error"
+                    android:textSize="15dp"
+                    android:visibility="gone" />
+            </FrameLayout>
+        </LinearLayout>
+
+        <include layout="@layout/widget_calculator_keys" />
+    </LinearLayout>
+</FrameLayout>
