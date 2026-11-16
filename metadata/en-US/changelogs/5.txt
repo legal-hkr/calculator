@@ -1,0 +1,4 @@
+v0.2.3
+
+Changes:
+- Widget: a soft shadow around the card

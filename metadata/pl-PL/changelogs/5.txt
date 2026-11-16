@@ -1,0 +1,4 @@
+v0.2.3
+
+Zmiany:
+- Widżet: delikatny cień wokół karty
